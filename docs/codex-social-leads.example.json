@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "agent": "codex",
+  "generated_at": "2026-07-13T00:00:00+00:00",
+  "lane_audits": {
+    "x_codex_official_leads": {
+      "status": "checked",
+      "checked_at": "2026-07-13T00:00:00+00:00",
+      "accounts_checked": [
+        "OpenAI",
+        "OpenAIDevs",
+        "AnthropicAI",
+        "GoogleDeepMind",
+        "GoogleAI",
+        "grok",
+        "xai",
+        "Alibaba_Qwen",
+        "deepseek_ai",
+        "Kimi_Moonshot",
+        "MistralAI",
+        "huggingface",
+        "NVIDIAAI"
+      ],
+      "qualifying_items": 1,
+      "note": "逐个检查官方公司与产品账号最近 24 小时原帖；账号跳转或身份不一致时不得收录。"
+    },
+    "x_codex_personnel_leads": {
+      "status": "checked",
+      "checked_at": "2026-07-13T00:00:00+00:00",
+      "accounts_checked": [
+        "thsottiaux",
+        "sama",
+        "gdb",
+        "darioamodei",
+        "demishassabis"
+      ],
+      "qualifying_items": 1,
+      "note": "逐个检查关键负责人最近 24 小时原帖。"
+    },
+    "x_codex_community_leads": {
+      "status": "checked",
+      "checked_at": "2026-07-13T00:00:00+00:00",
+      "accounts_checked": [
+        "testingcatalog"
+      ],
+      "qualifying_items": 1,
+      "note": "检查社区线索账号最近 24 小时原帖。"
+    }
+  },
+  "items": [
+    {
+      "source_id": "x_codex_official_leads",
+      "url": "https://x.com/OpenAI/status/1234567890123456789",
+      "discovery_url": "",
+      "title": "OpenAI 官方账号发布一项具体产品更新",
+      "text": "忠实概括原帖中的版本、能力、开放范围与发布时间；若原帖即正式公告，可按官方发布表述。",
+      "published_at": "2026-07-13T00:00:00+00:00",
+      "checked_urls": [
+        "https://x.com/OpenAI/status/1234567890123456789"
+      ],
+      "checks": {
+        "account_verified": true,
+        "post_text_verified": true
+      }
+    },
+    {
+      "source_id": "x_codex_personnel_leads",
+      "url": "https://x.com/sama/status/1234567890123456790",
+      "discovery_url": "",
+      "title": "OpenAI 负责人提到一项具体产品动向",
+      "text": "忠实保留原帖事实与消息性质；个人发言没有正式产品页时，不能写成确定发布时间或开放承诺。",
+      "published_at": "2026-07-13T00:00:00+00:00",
+      "checked_urls": [
+        "https://x.com/sama/status/1234567890123456790"
+      ],
+      "checks": {
+        "account_verified": true,
+        "post_text_verified": true
+      }
+    },
+    {
+      "source_id": "x_codex_community_leads",
+      "url": "https://x.com/testingcatalog/status/1234567890123456791",
+      "discovery_url": "",
+      "title": "社区账号记录一项可核对的产品线索",
+      "text": "只记录页面、版本或功能的具体观察，并在视频中明确标为传闻或风向。",
+      "published_at": "2026-07-13T00:00:00+00:00",
+      "checked_urls": [
+        "https://x.com/testingcatalog/status/1234567890123456791"
+      ],
+      "checks": {
+        "account_verified": true,
+        "post_text_verified": true
+      }
+    }
+  ]
+}

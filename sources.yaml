@@ -1,0 +1,1098 @@
+{
+  "version": 1,
+  "defaults": {
+    "timeout_seconds": 18,
+    "lookback_hours": 24,
+    "ticker_enabled": false,
+    "ticker_max_items": 12,
+    "selection_category_limits": {
+      "official_release": 4,
+      "official_update": 4,
+      "model_repository": 2,
+      "research": 2,
+      "community_signal": 1,
+      "media_report": 3,
+      "other": 2,
+      "official_personnel_signal": 1
+    },
+    "selection_quality_min_score": 68,
+    "selection_strict_auto": true,
+    "selection_min_publish_items": 1,
+    "selection_target_items": 0,
+    "x_rss_base_url": "https://nitter.net",
+    "user_agent": "DailyBilibiliBriefing/0.1 (+local; AI daily briefing)",
+    "content_enrichment_max_items": 32,
+    "content_enrichment_per_domain_limit": 6,
+    "content_enrichment_capture_assets": false,
+    "content_enrichment_use_crawl4ai": true,
+    "content_enrichment_cluster_first": true,
+    "content_enrichment_candidate_multiplier": 5,
+    "content_enrichment_candidate_max_per_entity": 8,
+    "content_enrichment_candidate_max_per_source": 8,
+    "content_enrichment_auto_runtime_repair": false,
+    "official_reconciliation_max_items": 12,
+    "automatic_quality_repair": true,
+    "auto_repair": true,
+    "selection_max_items": 0
+  },
+  "sources": [
+    {
+      "id": "openai_news",
+      "name": "OpenAI News",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://openai.com/news/rss.xml",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "OpenAI",
+        "ChatGPT",
+        "GPT",
+        "Sora"
+      ]
+    },
+    {
+      "id": "google_research",
+      "name": "Google Research Blog",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://research.google/blog/rss/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Google",
+        "Gemini",
+        "DeepMind",
+        "research"
+      ]
+    },
+    {
+      "id": "google_ai_blog",
+      "name": "Google AI Blog",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://blog.google/technology/ai/rss/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Google",
+        "Gemini",
+        "AI"
+      ]
+    },
+    {
+      "id": "huggingface_blog",
+      "name": "Hugging Face Blog",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Hugging Face",
+        "models",
+        "datasets",
+        "open source"
+      ]
+    },
+    {
+      "id": "ollama_blog",
+      "name": "Ollama Blog",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://ollama.com/blog/rss.xml",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Ollama",
+        "local LLM",
+        "open models",
+        "developer"
+      ]
+    },
+    {
+      "id": "qwen_blog",
+      "name": "Qwen Official Blog",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://qwenlm.github.io/blog/index.xml",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Qwen",
+        "通义",
+        "阿里",
+        "open models"
+      ]
+    },
+    {
+      "id": "nvidia_developer_blog",
+      "name": "NVIDIA Developer Blog",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://developer.nvidia.com/blog/feed/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "NVIDIA",
+        "AI",
+        "GPU",
+        "developer"
+      ]
+    },
+    {
+      "id": "google_hf_models",
+      "name": "Google Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "global",
+      "url": "https://huggingface.co/api/models?author=google&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Google",
+        "Gemini",
+        "Gemma",
+        "open models"
+      ]
+    },
+    {
+      "id": "mistral_hf_models",
+      "name": "Mistral Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "global",
+      "url": "https://huggingface.co/api/models?author=mistralai&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Mistral",
+        "open models"
+      ]
+    },
+    {
+      "id": "qwen_hf_models",
+      "name": "Qwen Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=Qwen&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Qwen",
+        "通义",
+        "千问",
+        "open models"
+      ]
+    },
+    {
+      "id": "deepseek_hf_models",
+      "name": "DeepSeek Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=deepseek-ai&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "DeepSeek",
+        "深度求索",
+        "open models"
+      ]
+    },
+    {
+      "id": "moonshot_hf_models",
+      "name": "Moonshot / Kimi Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=moonshotai&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Kimi",
+        "Moonshot",
+        "月之暗面",
+        "open models"
+      ]
+    },
+    {
+      "id": "zai_hf_models",
+      "name": "Z.ai / GLM Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=zai-org&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "智谱",
+        "GLM",
+        "Z.ai",
+        "open models"
+      ]
+    },
+    {
+      "id": "minimax_hf_models",
+      "name": "MiniMax Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=MiniMaxAI&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "MiniMax",
+        "模型",
+        "open models"
+      ]
+    },
+    {
+      "id": "bytedance_seed_hf_models",
+      "name": "ByteDance Seed Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=ByteDance-Seed&sort=lastModified&direction=-1&limit=10",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "字节",
+        "豆包",
+        "Seed",
+        "open models"
+      ]
+    },
+    {
+      "id": "paddlepaddle_hf_models",
+      "name": "PaddlePaddle Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=PaddlePaddle&sort=lastModified&direction=-1&limit=10",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "百度",
+        "文心",
+        "PaddlePaddle",
+        "open models"
+      ]
+    },
+    {
+      "id": "arxiv_cs_ai",
+      "name": "arXiv cs.AI",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://export.arxiv.org/rss/cs.AI",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "paper",
+        "AI",
+        "research"
+      ]
+    },
+    {
+      "id": "arxiv_cs_cl",
+      "name": "arXiv cs.CL",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://export.arxiv.org/rss/cs.CL",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "paper",
+        "LLM",
+        "NLP"
+      ]
+    },
+    {
+      "id": "arxiv_cs_lg",
+      "name": "arXiv cs.LG",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://export.arxiv.org/rss/cs.LG",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "paper",
+        "machine learning"
+      ]
+    },
+    {
+      "id": "github_changelog",
+      "name": "GitHub Changelog",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://github.blog/changelog/feed/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "GitHub",
+        "Copilot",
+        "developer"
+      ]
+    },
+    {
+      "id": "openai_codex_releases",
+      "name": "OpenAI Codex GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "global",
+      "url": "https://github.com/openai/codex/releases.atom",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "OpenAI",
+        "Codex",
+        "agent",
+        "developer"
+      ]
+    },
+    {
+      "id": "qwen_github_releases",
+      "name": "Qwen GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/QwenLM/Qwen3/releases.atom",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Qwen",
+        "通义",
+        "阿里",
+        "open source"
+      ]
+    },
+    {
+      "id": "deepseek_v3_releases",
+      "name": "DeepSeek-V3 GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/deepseek-ai/DeepSeek-V3/releases.atom",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "DeepSeek",
+        "深度求索",
+        "open source"
+      ]
+    },
+    {
+      "id": "deepseek_r1_releases",
+      "name": "DeepSeek-R1 GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/deepseek-ai/DeepSeek-R1/releases.atom",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "DeepSeek",
+        "R1",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "kimi_k2_releases",
+      "name": "Kimi-K2 GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/MoonshotAI/Kimi-K2/releases.atom",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "Kimi",
+        "Moonshot",
+        "月之暗面"
+      ]
+    },
+    {
+      "id": "zai_glm45_releases",
+      "name": "Z.ai GLM-4.5 GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/zai-org/GLM-4.5/releases.atom",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "智谱",
+        "GLM",
+        "Z.ai"
+      ]
+    },
+    {
+      "id": "tencent_hunyuan_releases",
+      "name": "Tencent Hunyuan GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/Tencent-Hunyuan/Hunyuan-A13B/releases.atom",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "腾讯",
+        "混元",
+        "Hunyuan"
+      ]
+    },
+    {
+      "id": "baidu_ernie_releases",
+      "name": "PaddlePaddle ERNIE GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/PaddlePaddle/ERNIE/releases.atom",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "百度",
+        "文心",
+        "ERNIE"
+      ]
+    },
+    {
+      "id": "bytedance_seed_releases",
+      "name": "ByteDance Seed-Coder GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/ByteDance-Seed/Seed-Coder/releases.atom",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "字节",
+        "Seed",
+        "豆包",
+        "code model"
+      ]
+    },
+    {
+      "id": "modelscope_github_releases",
+      "name": "ModelScope GitHub Releases",
+      "tier": "A",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://github.com/modelscope/modelscope/releases.atom",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "ModelScope",
+        "魔搭",
+        "阿里"
+      ]
+    },
+    {
+      "id": "openai_official_web",
+      "name": "OpenAI Official News Web",
+      "tier": "A",
+      "type": "web",
+      "region": "global",
+      "url": "https://openai.com/news/",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "OpenAI",
+        "ChatGPT",
+        "GPT",
+        "Sora",
+        "API"
+      ]
+    },
+    {
+      "id": "anthropic_official_web",
+      "name": "Anthropic Official News Web",
+      "tier": "A",
+      "type": "web",
+      "region": "global",
+      "url": "https://www.anthropic.com/news",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Anthropic",
+        "Claude",
+        "模型",
+        "API"
+      ]
+    },
+    {
+      "id": "deepseek_official_web",
+      "name": "DeepSeek Official Updates Web",
+      "tier": "A",
+      "type": "web",
+      "region": "cn",
+      "url": "https://api-docs.deepseek.com/updates",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "DeepSeek",
+        "深度求索",
+        "模型",
+        "API"
+      ]
+    },
+    {
+      "id": "qwen_official_web",
+      "name": "Qwen Official Blog Web",
+      "tier": "A",
+      "type": "web",
+      "region": "cn",
+      "url": "https://qwenlm.github.io/blog/",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "Qwen",
+        "通义",
+        "千问",
+        "模型",
+        "开源"
+      ]
+    },
+    {
+      "id": "moonshot_official_web",
+      "name": "Moonshot / Kimi Official Blog Web",
+      "tier": "A",
+      "type": "web",
+      "region": "cn",
+      "url": "https://www.kimi.com/blog/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Kimi",
+        "Moonshot",
+        "月之暗面",
+        "模型",
+        "API"
+      ]
+    },
+    {
+      "id": "mistral_official_web",
+      "name": "Mistral AI Official News Web",
+      "tier": "A",
+      "type": "web",
+      "region": "global",
+      "url": "https://mistral.ai/news/",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "Mistral",
+        "模型",
+        "API",
+        "开源"
+      ]
+    },
+    {
+      "id": "meta_llama_official_web",
+      "name": "Meta Llama Official Web",
+      "tier": "A",
+      "type": "web",
+      "region": "global",
+      "url": "https://www.llama.com/",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "Meta",
+        "Llama",
+        "模型",
+        "开源"
+      ]
+    },
+    {
+      "id": "meta_ai_official_sitemap",
+      "name": "Meta AI Official News Sitemap",
+      "tier": "A",
+      "type": "sitemap",
+      "region": "global",
+      "url": "https://about.fb.com/sitemap_index.xml",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "Meta",
+        "Meta AI",
+        "Muse",
+        "Spark",
+        "模型"
+      ]
+    },
+    {
+      "id": "kwaipilot_hf_models",
+      "name": "Kwaipilot Hugging Face Models",
+      "tier": "A",
+      "type": "hf_models",
+      "region": "cn",
+      "url": "https://huggingface.co/api/models?author=Kwaipilot&sort=lastModified&direction=-1&limit=20",
+      "enabled": false,
+      "reliability": "official",
+      "topics": [
+        "快手",
+        "Kwai",
+        "Kwaipilot",
+        "KAT-Coder",
+        "Agentic Coding"
+      ]
+    },
+    {
+      "id": "xai_official_web",
+      "name": "xAI Official News Web",
+      "tier": "B",
+      "type": "web",
+      "region": "global",
+      "url": "https://x.ai/news",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "xAI",
+        "Grok",
+        "模型",
+        "API"
+      ]
+    },
+    {
+      "id": "doubao_official_web",
+      "name": "ByteDance Seed Official Web",
+      "tier": "B",
+      "type": "web",
+      "region": "cn",
+      "url": "https://seed.bytedance.com/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "豆包",
+        "Doubao",
+        "字节",
+        "Seed",
+        "模型"
+      ]
+    },
+    {
+      "id": "zhipu_official_web",
+      "name": "Z.ai / GLM Official Site",
+      "tier": "B",
+      "type": "web",
+      "region": "cn",
+      "url": "https://z.ai/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "Z.ai",
+        "智谱",
+        "GLM",
+        "模型",
+        "API"
+      ]
+    },
+    {
+      "id": "minimax_official_web",
+      "name": "MiniMax Official Site",
+      "tier": "B",
+      "type": "web",
+      "region": "cn",
+      "url": "https://www.minimaxi.com/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "MiniMax",
+        "模型",
+        "视频",
+        "语音"
+      ]
+    },
+    {
+      "id": "tencent_hunyuan_official_web",
+      "name": "Tencent Hunyuan Official Web",
+      "tier": "B",
+      "type": "web",
+      "region": "cn",
+      "url": "https://hy.tencent.com/",
+      "enabled": true,
+      "reliability": "official",
+      "topics": [
+        "腾讯混元",
+        "Hunyuan",
+        "混元",
+        "Hy",
+        "模型"
+      ]
+    },
+    {
+      "id": "infoq_cn",
+      "name": "InfoQ 中文",
+      "tier": "B",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://www.infoq.cn/feed",
+      "enabled": true,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "developer",
+        "industry"
+      ]
+    },
+    {
+      "id": "36kr",
+      "name": "36氪",
+      "tier": "B",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://36kr.com/feed",
+      "enabled": true,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "startup",
+        "industry"
+      ]
+    },
+    {
+      "id": "ifanr",
+      "name": "爱范儿",
+      "tier": "B",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://www.ifanr.com/feed",
+      "enabled": true,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "consumer tech"
+      ]
+    },
+    {
+      "id": "qbitai",
+      "name": "量子位",
+      "tier": "B",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://www.qbitai.com/feed",
+      "enabled": true,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "大模型",
+        "智能体",
+        "研究",
+        "产业"
+      ]
+    },
+    {
+      "id": "sspai",
+      "name": "少数派",
+      "tier": "B",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://sspai.com/feed",
+      "enabled": false,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "tools",
+        "productivity"
+      ]
+    },
+    {
+      "id": "jiqizhixin_candidate",
+      "name": "机器之心 RSS 候选（健康检测后启用）",
+      "tier": "B",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://www.jiqizhixin.com/rss",
+      "enabled": false,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "research",
+        "industry"
+      ]
+    },
+    {
+      "id": "reddit_localllama",
+      "name": "Reddit LocalLLaMA",
+      "tier": "C",
+      "type": "rss",
+      "region": "global",
+      "url": "https://www.reddit.com/r/LocalLLaMA/.rss",
+      "enabled": false,
+      "reliability": "community",
+      "topics": [
+        "local LLM",
+        "open weights",
+        "community"
+      ]
+    },
+    {
+      "id": "hn_frontpage",
+      "name": "Hacker News Frontpage",
+      "tier": "C",
+      "type": "rss",
+      "region": "global",
+      "url": "https://hnrss.org/frontpage",
+      "enabled": false,
+      "reliability": "community",
+      "topics": [
+        "developer",
+        "AI",
+        "startup"
+      ]
+    },
+    {
+      "id": "github_trending_all",
+      "name": "GitHub Trending Daily All",
+      "tier": "C",
+      "type": "rss",
+      "region": "global",
+      "url": "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml",
+      "enabled": false,
+      "reliability": "community",
+      "topics": [
+        "GitHub",
+        "open source",
+        "trending"
+      ]
+    },
+    {
+      "id": "linuxdo_candidate",
+      "name": "LINUX DO 最新（待稳定代理/适配）",
+      "tier": "C",
+      "type": "rss",
+      "region": "cn",
+      "url": "https://linux.do/latest.rss",
+      "enabled": false,
+      "reliability": "community",
+      "topics": [
+        "AI",
+        "community"
+      ]
+    },
+    {
+      "id": "google_news_ai_cn",
+      "name": "Google News AI 中文搜索",
+      "tier": "B",
+      "type": "google_news",
+      "region": "cn",
+      "url": "(AI OR 人工智能 OR 大模型 OR OpenAI OR DeepSeek OR 通义千问 OR 腾讯混元 OR Kimi OR 智谱 OR 豆包 OR MiniMax)",
+      "enabled": true,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "大模型",
+        "news search",
+        "Horizon-inspired"
+      ]
+    },
+    {
+      "id": "google_news_ai_global",
+      "name": "Google News AI Global Search",
+      "tier": "B",
+      "type": "google_news",
+      "region": "global",
+      "url": "(OpenAI OR Anthropic OR Claude OR ChatGPT OR Gemini OR DeepMind OR Meta AI OR xAI OR Mistral OR Hugging Face)",
+      "enabled": false,
+      "reliability": "media",
+      "topics": [
+        "AI",
+        "global labs",
+        "news search",
+        "Horizon-inspired"
+      ]
+    },
+    {
+      "id": "rsshub_36kr_newsflash",
+      "name": "RSSHub 36氪快讯（需 RSSHUB_BASE_URL）",
+      "tier": "D",
+      "type": "rsshub",
+      "region": "cn",
+      "url": "/36kr/newsflash",
+      "enabled": false,
+      "reliability": "aggregator",
+      "topics": [
+        "AI",
+        "newsflash"
+      ]
+    },
+    {
+      "id": "x_codex_official_leads",
+      "name": "Codex verified X official account leads",
+      "tier": "A",
+      "type": "agent_social",
+      "region": "global",
+      "url": "data/codex-social-leads.json#OpenAI,OpenAIDevs,ChatGPTapp,AnthropicAI,GoogleDeepMind,GoogleAI,grok,xai,Alibaba_Qwen,deepseek_ai,Kimi_Moonshot,MistralAI,huggingface,NVIDIAAI",
+      "enabled": true,
+      "reliability": "official_social",
+      "topics": [
+        "OpenAI",
+        "Anthropic",
+        "Google DeepMind",
+        "xAI",
+        "Qwen",
+        "DeepSeek",
+        "Kimi",
+        "Mistral AI",
+        "Hugging Face",
+        "NVIDIA",
+        "official X first release"
+      ]
+    },
+    {
+      "id": "x_codex_personnel_leads",
+      "name": "Codex verified X personnel leads",
+      "tier": "C",
+      "type": "agent_social",
+      "region": "global",
+      "url": "data/codex-social-leads.json#thsottiaux,sama,gdb,darioamodei,demishassabis",
+      "enabled": true,
+      "reliability": "official_personnel",
+      "topics": [
+        "OpenAI",
+        "Anthropic",
+        "Google DeepMind",
+        "xAI",
+        "Codex agent lead"
+      ]
+    },
+    {
+      "id": "x_codex_community_leads",
+      "name": "Codex verified X community leads",
+      "tier": "C",
+      "type": "agent_social",
+      "region": "global",
+      "url": "data/codex-social-leads.json#testingcatalog",
+      "enabled": true,
+      "reliability": "community",
+      "topics": [
+        "AI",
+        "product",
+        "community signal",
+        "Codex agent lead"
+      ]
+    },
+    {
+      "id": "x_openai_staff_tibo",
+      "name": "X / OpenAI Codex staff: Tibo",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/thsottiaux",
+      "enabled": false,
+      "reliability": "official_personnel",
+      "topics": [
+        "OpenAI",
+        "Codex",
+        "GPT",
+        "model"
+      ]
+    },
+    {
+      "id": "x_openai_sama",
+      "name": "X / OpenAI: Sam Altman",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/sama",
+      "enabled": false,
+      "reliability": "official_personnel",
+      "topics": [
+        "OpenAI",
+        "ChatGPT",
+        "GPT",
+        "Sora"
+      ]
+    },
+    {
+      "id": "x_openai_gdb",
+      "name": "X / OpenAI: Greg Brockman",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/gdb",
+      "enabled": false,
+      "reliability": "official_personnel",
+      "topics": [
+        "OpenAI",
+        "ChatGPT",
+        "GPT",
+        "developer"
+      ]
+    },
+    {
+      "id": "x_anthropic_dario",
+      "name": "X / Anthropic: Dario Amodei",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/darioamodei",
+      "enabled": false,
+      "reliability": "official_personnel",
+      "topics": [
+        "Anthropic",
+        "Claude",
+        "model",
+        "safety"
+      ]
+    },
+    {
+      "id": "x_google_deepmind_demis",
+      "name": "X / Google DeepMind: Demis Hassabis",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/demishassabis",
+      "enabled": false,
+      "reliability": "official_personnel",
+      "topics": [
+        "Google",
+        "DeepMind",
+        "Gemini",
+        "model"
+      ]
+    },
+    {
+      "id": "x_xai_grok",
+      "name": "X / xAI: Grok",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/xai",
+      "enabled": false,
+      "reliability": "official_social",
+      "topics": [
+        "xAI",
+        "Grok",
+        "model",
+        "product"
+      ]
+    },
+    {
+      "id": "x_testingcatalog_signal",
+      "name": "X / TestingCatalog（社区线索）",
+      "tier": "C",
+      "type": "rsshub",
+      "region": "global",
+      "url": "/twitter/user/testingcatalog",
+      "enabled": false,
+      "reliability": "community",
+      "topics": [
+        "AI",
+        "product",
+        "community signal"
+      ]
+    }
+  ]
+}

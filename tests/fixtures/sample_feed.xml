@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Sample Official AI Feed</title>
+    <item>
+      <title>Qwen releases a new open model for local deployment</title>
+      <link>https://example.com/qwen-release</link>
+      <guid>qwen-release-1</guid>
+      <pubDate>Fri, 03 Jul 2026 08:00:00 GMT</pubDate>
+      <description>Qwen released a new open model with local deployment support.</description>
+    </item>
+    <item>
+      <title>Community rumor about unknown model</title>
+      <link>https://example.com/rumor</link>
+      <guid>rumor-1</guid>
+      <description>No date here.</description>
+    </item>
+  </channel>
+</rss>

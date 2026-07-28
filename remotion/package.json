@@ -1,0 +1,25 @@
+{
+  "name": "ai-daily-briefing-remotion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "render": "remotion render src/index.ts BriefingVideo",
+    "test": "node --experimental-strip-types --test tests/timeline.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.484",
+    "@remotion/transitions": "4.0.484",
+    "remotion": "4.0.484",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.8.2"
+  }
+}

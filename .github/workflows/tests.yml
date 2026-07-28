@@ -1,0 +1,44 @@
+﻿name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unittest:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the declared minimum (pyproject requires-python); testing it in CI
+        # catches 3.12+-only syntax/stdlib use that a 3.13-only run would miss.
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install package dependencies
+        run: python -m pip install -e .
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+  remotion:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: remotion/package-lock.json
+      - name: Install Remotion dependencies
+        working-directory: remotion
+        run: npm ci
+      - name: Test timeline behavior
+        working-directory: remotion
+        run: npm test
+      - name: Type-check Remotion
+        working-directory: remotion
+        run: npm run typecheck

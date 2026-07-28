@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-daily-briefing"
+version = "0.1.0"
+description = "Evidence-first AI news video pipeline with auditable facts, Remotion rendering, and Bilibili-ready packages."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = ["requests>=2.31", "edge-tts>=7.2", "crawl4ai>=0.9,<1.0", "Pillow>=10"]
+keywords = ["ai-news", "fact-checking", "remotion", "bilibili", "video-automation"]
+
+[tool.setuptools.packages.find]
+include = ["briefing", "briefing.*"]
+exclude = ["tests", "tests.*", "assets", "assets.*", "skill", "skill.*", "remotion", "remotion.*", "runs", "runs.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 200
+
+[tool.ruff.lint]
+# Bug-focused rule set: pyflakes, syntax errors, bugbear. Style rules are
+# intentionally excluded. `ruff check briefing tests scripts` should stay clean.
+select = ["F", "E9", "B"]
+ignore = [
+    "B905", # zip(strict=...) churn; lengths are guaranteed equal at these call sites
+    "B007", # loop variables kept for readable (value, weight) destructuring
+    "B005", # .strip("chars") used deliberately as a character set
+    "B034", # positional re.split maxsplit at established call sites
+]

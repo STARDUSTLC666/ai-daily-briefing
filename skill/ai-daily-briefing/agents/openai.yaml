@@ -1,0 +1,7 @@
+interface:
+  display_name: "Daily Bilibili AI Briefing"
+  short_description: "Create and verify Bilibili-ready AI daily briefing packages."
+  default_prompt: "Use $ai-daily-briefing to generate today's AI Bilibili briefing package."
+
+policy:
+  allow_implicit_invocation: true
