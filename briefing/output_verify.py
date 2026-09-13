@@ -575,6 +575,9 @@ def _automatic_news_content_errors(script_segments: list[dict]) -> list[str]:
             ]
         )
         compact_narration = re.sub(r"\s+", "", narration)
+        sensational = re.search(r"王炸|杀疯了|刷爆|震撼|炸裂|AGI\s*真的来了|程序员失业|彻底取代|颠覆", visible, flags=re.I)
+        if sensational:
+            errors.append(f"news segment {index} contains sensational copy requiring editorial review: {sensational.group(0)}")
         tier = str(segment.get("editorial_tier") or "headline")
         minimum_chars = MIN_BRIEF_NARRATION_CHARS if tier == "brief" else MIN_NEWS_NARRATION_CHARS
         if len(compact_narration) < minimum_chars:

@@ -184,6 +184,7 @@ BRAND_NAMES = {
 }
 
 SENSATIONAL_TITLE_PATTERNS = [
+    r"王炸|杀疯|刷爆|震撼|自曝|AGI\s*真的来了|程序员失业|彻底取代|颠覆",
     r"跑路", r"狂喜", r"炸裂", r"刚刚", r"重磅", r"突发", r"刷屏",
     r"消失.{0,12}(?:后|发帖)", r"只为(?:它|他|她|这)", r"最强", r"卖[“”\"']?低价",
     r"看了.{0,24}机器人.{0,8}悟了",
@@ -457,7 +458,7 @@ def _title(spec: StorySpec) -> str:
         if re.search(r"[\u4e00-\u9fff]", candidate) and any(
             action in candidate for action in ["发布", "推出", "上线", "接入", "新增", "更新", "升级", "支持"]
         ):
-            return candidate[:72].rstrip(" ：:；;，,")
+            return candidate.rstrip(" ：:；;，,")
     obj = model or product or _headline_object(spec)
     action = spec.action
     if spec.kind == "model_release" and action in {"动态", "新增", "更新"}:
@@ -473,7 +474,7 @@ def _title(spec: StorySpec) -> str:
     else:
         title = localized_headline
     title = re.sub(r"\s+", " ", title).strip(" ：:；;，,")
-    return title[:72].rstrip(" ：:；;，,")
+    return title.rstrip(" ：:；;，,")
 
 
 def _normalize_public_fact(text: str) -> str:
@@ -788,7 +789,7 @@ def _release_event_title(text: str) -> str:
 def _neutral_claim_title(text: str) -> str:
     event_title = _release_event_title(text)
     if event_title:
-        return event_title[:72].rstrip(" ：:；;，,。")
+        return event_title.rstrip(" ：:；;，,。")
     title = _normalize_public_fact(text)
     title = re.sub(
         r"\b(OpenAI|Anthropic|Google|Microsoft|Meta|xAI)(?=[\u4e00-\u9fff])",

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "render": "remotion render src/index.ts BriefingVideo",
-    "test": "node --experimental-strip-types --test tests/timeline.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

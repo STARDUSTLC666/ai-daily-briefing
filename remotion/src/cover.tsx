@@ -2,6 +2,7 @@ import React from "react";
 import {AbsoluteFill} from "remotion";
 
 import type {BriefingSlide, BriefingVideoProps, CoverCopy} from "./video";
+import {NewsroomCover} from './newsroom';
 
 const C = {
   bg: "#f4f8f7",
@@ -52,6 +53,7 @@ const derivedCover = (props: BriefingVideoProps): CoverCopy => {
 const headlineSize = (text: string) => (text.length > 18 ? 82 : text.length > 13 ? 98 : 116);
 
 export const BriefingCover: React.FC<BriefingVideoProps> = (props) => {
+  if (props.visualStyle !== 'classic') return <NewsroomCover {...props} />;
   const fallback = derivedCover(props);
   const copy = {...fallback, ...(props.cover || {})};
   const highlights = (copy.highlights || fallback.highlights || []).filter(Boolean).slice(0, 3);
@@ -128,6 +130,7 @@ export const BriefingCover: React.FC<BriefingVideoProps> = (props) => {
 const headline43Size = (text: string) => (text.length > 28 ? 64 : text.length > 22 ? 72 : 82);
 
 export const BriefingCover43: React.FC<BriefingVideoProps> = (props) => {
+  if (props.visualStyle !== 'classic') return <NewsroomCover {...props} fourByThree />;
   const fallback = derivedCover(props);
   const copy = {...fallback, ...(props.cover || {})};
   const highlights = (copy.highlights || fallback.highlights || []).filter(Boolean).slice(0, 3);

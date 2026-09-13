@@ -275,6 +275,7 @@ def _write_remotion_input(
     layered_slides = attach_render_layers(slides, render_dir, _repo_root())
     layer_manifest = write_render_layer_manifest(render_dir, slides, quality, _repo_root())
     payload = {
+        "visualStyle": os.environ.get("BRIEFING_VISUAL_STYLE", "newsroom"),
         "fps": FPS,
         "width": width,
         "height": height,

@@ -11,6 +11,7 @@ import {
 import {TransitionSeries, linearTiming} from "@remotion/transitions";
 import {wipe} from "@remotion/transitions/wipe";
 import {FontFaces, theme as T} from "./theme";
+import {NewsroomScene} from "./newsroom";
 import {
   timelineItemIndexAtTime,
   timelineItemPixelGeometry,
@@ -48,6 +49,7 @@ export type BriefingPage = {
 };
 
 export type TimelineItem = {
+  headline?: string;
   label: string;
   start: number;
   end: number;
@@ -91,6 +93,7 @@ export type BriefingSlide = {
 };
 
 export type BriefingVideoProps = {
+  visualStyle?: 'newsroom' | 'classic';
   fps: number;
   width: number;
   height: number;
@@ -1610,7 +1613,7 @@ export const BriefingVideo: React.FC<BriefingVideoProps> = (props) => {
           return (
             <React.Fragment key={`${slide.index}-${index}`}>
               <TransitionSeries.Sequence durationInFrames={index < slides.length - 1 ? duration + TRANSITION_FRAMES : duration}>
-                <Scene slide={slide} duration={duration} compositionFrame={compositionFrame} />
+                {props.visualStyle === 'classic' ? <Scene slide={slide} duration={duration} compositionFrame={compositionFrame} /> : <NewsroomScene slide={slide} duration={duration} compositionFrame={compositionFrame} />}
               </TransitionSeries.Sequence>
               {index < slides.length - 1 && (
                 <TransitionSeries.Transition

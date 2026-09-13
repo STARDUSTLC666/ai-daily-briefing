@@ -3166,12 +3166,12 @@ def _browser_page_windows(duration: float, count: int) -> list[tuple[float, floa
     return [(idx * step, (idx + 1) * step) for idx in range(count)]
 
 
-def _clean_slide_text(value: Any, limit: int = 120) -> str:
+def _clean_slide_text(value: Any, limit: int | None = 120) -> str:
     text = clean_text(str(value or "")).replace("\\N", " ")
     text = " ".join(text.split())
     text = text.replace(",", "，").replace(";", "；")
     text = re.sub(r"(?<!\d):(?!\d)", "：", text)
-    if len(text) <= limit:
+    if limit is None or len(text) <= limit:
         return text
     return text[:limit].rstrip(" ，。,.:-_")
 
@@ -3200,6 +3200,7 @@ def _browser_timeline_items(segments: list[dict[str, Any]], durations: list[floa
             {
                 "label": _clean_slide_text(label, 18),
                 "entity": _clean_slide_text(entity, 14),
+                "headline": _clean_slide_text(seg.get("title") or label, None),
                 "start": round(current, 3),
                 "end": round(current + duration, 3),
                 "duration": round(duration, 3),
@@ -3255,6 +3256,12 @@ def _browser_slides(out_dir: Path, segments: list[dict[str, Any]], durations: li
     width, height = _quality_size(quality)
     slides: list[dict[str, Any]] = []
     current = 0.0
+    # The newsroom renderer paginates complete copy. Truncating here would
+    # corrupt the approved manuscript before React ever receives it.
+    newsroom = os.environ.get("BRIEFING_VISUAL_STYLE", "newsroom") == "newsroom"
+
+    def visible_text(value: Any, legacy_limit: int) -> str:
+        return _clean_slide_text(value, None if newsroom else legacy_limit)
     timeline_items = _browser_timeline_items(segments, durations)
     timeline_total = round(sum(max(0.8, float(x or 0.8)) for x in durations), 3)
     for seg_index, (seg, duration) in enumerate(zip(segments, durations)):
@@ -3267,18 +3274,19 @@ def _browser_slides(out_dir: Path, segments: list[dict[str, Any]], durations: li
             slide_duration = max(0.8, page_end - page_start)
             page_payload = dict(page)
             page_accent = _design_accent(page_payload.get("accent") or page_payload.get("color"), accent)
-            page_payload["title"] = _clean_slide_text(page_payload.get("title") or raw_title, 90)
+            page_payload["title"] = visible_text(page_payload.get("title") or raw_title, 90)
             if "lead" in page_payload:
-                page_payload["lead"] = _clean_slide_text(page_payload.get("lead"), 120)
+                page_payload["lead"] = visible_text(page_payload.get("lead"), 120)
             cards = []
-            for card in list(page_payload.get("cards") or [])[:6]:
+            page_cards = list(page_payload.get("cards") or [])
+            for card in (page_cards if newsroom else page_cards[:6]):
                 if isinstance(card, dict):
                     cards.append(
                         {
                             "icon": _clean_slide_text(card.get("icon"), 3),
-                            "title": _clean_slide_text(card.get("title") or "看点", 18),
-                            "body": _clean_slide_text(card.get("body"), 120),
-                            "meta": _clean_slide_text(card.get("meta"), 36),
+                            "title": visible_text(card.get("title") or "看点", 18),
+                            "body": visible_text(card.get("body"), 120),
+                            "meta": visible_text(card.get("meta"), 36),
                             "accent": _clean_slide_text(card.get("accent") or "", 8),
                             "component": _clean_slide_text(card.get("component") or "", 32),
                         }
@@ -3317,8 +3325,8 @@ def _browser_slides(out_dir: Path, segments: list[dict[str, Any]], durations: li
                     "storyTotal": int(seg.get("total") or 0),
                     "activeTab": active_tab,
                     "accent": page_accent,
-                    "title": _clean_slide_text(raw_title, 92),
-                    "caption": _clean_slide_text(seg.get("caption") or raw_title, 70),
+                    "title": visible_text(raw_title, 92),
+                    "caption": visible_text(seg.get("caption") or raw_title, 70),
                     "kicker": _browser_kicker(seg, active_tab),
                     "bottomTabs": [str(x) for x in (seg.get("bottom_tabs") or ["开场", "收尾"])],
                     "bottomActive": str(seg.get("bottom_active") or active_tab),

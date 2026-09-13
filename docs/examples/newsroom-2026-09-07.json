@@ -1,0 +1,51 @@
+{
+  "edition_date": "2026-09-07",
+  "source_notes": [{
+    "source": "OpenAI",
+    "url": "https://openai.com/index/research-acceleration-view-inside-openai/",
+    "published_date": "2026-09-06",
+    "checked_date": "2026-09-07",
+    "review_note": "已阅读官方原文。数据为公司内部测量与自述，运行时长不等于生产率。未取得可用的本地原文截图，本文件仅用于视觉与配音样片，不作为生产审计。"
+  }],
+  "cover": {
+    "headline": "AI 开始参与 AI 研究",
+    "subheadline": "OpenAI 披露内部数据：进展与人类的作用",
+    "date": "2026-09-07",
+    "storyCount": 1
+  },
+  "segments": [
+    {
+      "kind": "intro", "title": "AI 这一天", "caption": "每天，把 AI 世界的新变化讲清楚。",
+      "text": "OpenAI 说，AI 已经在参与它的研究。这期，看看刚公开的内部数据。",
+      "active_tab": "Intro", "bottom_active": "开场",
+      "cards": [{"title": "OpenAI", "body": "AI 开始参与 AI 研究"}],
+      "visual_pages": [{"kind": "overview", "cards": [{"title": "OpenAI", "body": "AI 开始参与 AI 研究"}]}]
+    },
+    {
+      "kind": "news", "position": 1, "total": 1, "title": "OpenAI 披露 AI 参与研究的内部数据",
+      "caption": "研究助手的进展，与人类仍然扮演的角色", "timeline_entity": "OpenAI",
+      "active_tab": "研究观察", "bottom_active": "OpenAI 研究自动化",
+      "text": "九月六日，OpenAI 披露内部研究自动化的进展。它说，系统已经能在人类指导下，完成目标明确的研究任务，其中有些任务原本需要熟练研究员花上几天。报告还给出一个容易误读的数字：三点一个工作日。按每天八小时折算，到八月中旬，每一个人工工作日，对应三点一个智能体工作日。这统计的是运行时长，不能直接说研究效率提高了三点一倍。人类仍然不可少。过去半年，在被判定成功的四到八小时任务中，超过一半仍需要至少一次人工介入。研究方向、项目取舍，以及是否扩大训练、暂停或部署，仍由人类决定。",
+      "cards": [],
+      "visual_pages": [
+        {"kind": "cards", "title": "AI 正在进入研究工作流", "source": "OpenAI · 2026.09.06 · 公司自述", "cards": [
+          {"title": "研究任务", "body": "在人类指导下，完成目标明确的研究任务。"},
+          {"title": "任务跨度", "body": "其中有些任务，原本需要熟练研究员花上几天。"}
+        ]},
+        {"kind": "cards", "title": "3.1 个工作日，代表什么？", "source": "OpenAI · 2026.09.06 · 内部测量", "cards": [
+          {"title": "按每天 8 小时折算", "body": "到 8 月中旬，每 1 个人工工作日，对应 3.1 个智能体工作日。"},
+          {"title": "统计口径", "body": "这是运行时长，不能直接解读为研究效率提升 3.1 倍。"}
+        ]},
+        {"kind": "cards", "title": "人类仍然负责关键决定", "source": "OpenAI · 2026.09.06 · 内部测量", "cards": [
+          {"title": "人工介入", "body": "过去半年，成功的 4—8 小时任务中，超过一半需要至少一次人工介入。"},
+          {"title": "决策责任", "body": "研究方向、项目取舍，以及是否扩大训练、暂停或部署，仍由人类决定。"}
+        ]}
+      ]
+    },
+    {
+      "kind": "outro", "title": "AI 这一天", "caption": "AI 这一天 · 明天见", "active_tab": "Outro",
+      "text": "你最想让 AI 帮你完成哪一步研究工作？我们下期见。", "cards": [],
+      "visual_pages": [{"kind": "closing_continuation", "cards": []}]
+    }
+  ]
+}
