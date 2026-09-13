@@ -318,7 +318,7 @@ def create_agent_package(run_dir: Path) -> dict[str, Any]:
         "editable_fields": ["intro/outro text", "news sentence order", "approved copy-block selection"],
         "immutable_fields": ["segment order", "kind", "story_id", "claim_ids", "generation_path", "editorial_tier", "position", "total"],
         "rules": [
-            "先检查 X 官方公司、官方产品和关键负责人原帖，再核对官网；RSS、Google News 和镜像只作后台线索，不能出现在视频文案。",
+            ("本期为公开网页来源版，逐条核对官网原文；未检查 X，不得声称覆盖 X 或采用未审计的社交传闻。" if ((manifest.get("source_coverage") or {}).get("x") or {}).get("required") is False else "先检查 X 官方公司、官方产品和关键负责人原帖，再核对官网；RSS、Google News 和镜像只作后台线索，不能出现在视频文案。"),
             "不得新增、删除或替换 story_id；不得把一线消息或传闻写成正式公告。",
             "新闻段只能重排或删减冻结稿中的 approved copy blocks，不能自由改写事实句。",
             "标题、口播和卡片不得补造数字、版本、价格、动作或可用范围。",

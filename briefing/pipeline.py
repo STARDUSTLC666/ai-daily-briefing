@@ -72,7 +72,7 @@ def _coverage_gap_health(sources: list[Source]) -> list[SourceHealth]:
     ]
 
 
-def _source_coverage(sources: list[Source], health: list[SourceHealth]) -> dict[str, Any]:
+def _source_coverage(sources: list[Source], health: list[SourceHealth], *, required: bool = True) -> dict[str, Any]:
     configured = [source for source in sources if source.id.startswith("x_")]
     enabled = [source for source in configured if source.enabled]
     by_id = {source.id: source for source in configured}
@@ -108,7 +108,7 @@ def _source_coverage(sources: list[Source], health: list[SourceHealth]) -> dict[
     )
     return {
         "x": {
-            "required": True,
+            "required": required,
             "configured_sources": len(configured),
             "enabled_sources": len(enabled),
             "healthy_sources": len(healthy_ids),
@@ -116,8 +116,8 @@ def _source_coverage(sources: list[Source], health: list[SourceHealth]) -> dict[
             "healthy_community_sources": len(healthy_community),
             "required_agent_lanes": sorted(required_agent_lanes),
             "healthy_agent_lanes": sorted(healthy_agent_lanes),
-            "status": "healthy" if lane_ok else "coverage_gap",
-            "reason": "" if lane_ok else "X coverage requires fresh Codex lane_audits for official accounts, official personnel, and community leads; feed mirrors cannot satisfy this gate",
+            "status": ("healthy" if lane_ok else "coverage_gap") if required else "not_requested",
+            "reason": ("" if lane_ok else "X coverage requires fresh Codex lane_audits for official accounts, official personnel, and community leads; feed mirrors cannot satisfy this gate") if required else "Public-web edition; social accounts were not included or audited",
         }
     }
 
@@ -191,6 +191,7 @@ def _run_provenance(config_path: Path | None) -> dict[str, Any]:
         "dirty_file_count": len([line for line in status.splitlines() if line.strip()]),
         "config_path": str(config_file),
         "config_sha256": hashlib.sha256(config_bytes).hexdigest(),
+        "effective_config_sha256": hashlib.sha256(json.dumps(load_config(config_file), sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
     }
 
 
@@ -358,7 +359,7 @@ def _run_pipeline_unlocked(
         run_state.start("COLLECT", input_count=len(enabled_sources), fingerprint_input=[s.id for s in enabled_sources])
         health, fetched = collect_sources(enabled_sources, user_agent=user_agent, workers=workers, lookback_hours=lookback)
         health.extend(_coverage_gap_health(sources))
-        source_coverage = _source_coverage(sources, health)
+        source_coverage = _source_coverage(sources, health, required=defaults.get("require_x_coverage") is not False)
         run_state.finish("COLLECT", output_count=len(fetched), metrics={"healthy_sources": sum(1 for row in health if row.status in {"ok", "ok_web_pending_adapter"})})
         for h in health:
             insert_health(conn, h)

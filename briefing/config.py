@@ -74,19 +74,36 @@ def _parse_minimal_yaml(text: str) -> dict[str, Any]:
     return data
 
 
-def load_config(path: Path | None = None) -> dict[str, Any]:
-    path = path or (project_root() / "sources.yaml")
+def load_config(path: Path | None = None, *, _parents: frozenset[Path] = frozenset()) -> dict[str, Any]:
+    path = (path or (project_root() / "sources.yaml")).resolve()
+    if path in _parents:
+        raise ValueError(f"circular configuration inheritance: {path.name}")
     text = path.read_text(encoding="utf-8")
     try:
-        return json.loads(_strip_yaml_comments(text))
+        parsed = json.loads(_strip_yaml_comments(text))
     except json.JSONDecodeError:
         try:
             import yaml  # type: ignore
 
             parsed = yaml.safe_load(text)
-            return parsed or {}
         except Exception:
-            return _parse_minimal_yaml(text)
+            parsed = _parse_minimal_yaml(text)
+    if not isinstance(parsed, dict):
+        raise ValueError(f"configuration must be an object: {path.name}")
+    if parsed.get("extends"):
+        base = load_config(path.parent / str(parsed["extends"]), _parents=_parents | {path})
+        parsed = {**base, **parsed, "defaults": {**base.get("defaults", {}), **parsed.get("defaults", {})}}
+    source_filter = parsed.get("source_filter") or {}
+    excluded_types = set(source_filter.get("exclude_types") or [])
+    excluded_prefixes = tuple(source_filter.get("exclude_id_prefixes") or [])
+    if excluded_types or excluded_prefixes:
+        parsed["sources"] = [
+            {**row, "enabled": False}
+            if row.get("type") in excluded_types or str(row.get("id", "")).startswith(excluded_prefixes)
+            else row
+            for row in parsed.get("sources", [])
+        ]
+    return parsed
 
 
 def load_sources(path: Path | None = None, include_disabled: bool = False) -> list[Source]:
