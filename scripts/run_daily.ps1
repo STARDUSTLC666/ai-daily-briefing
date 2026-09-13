@@ -47,6 +47,9 @@ if ($env:BRIEFING_TTS_BACKEND -eq "edge") {
 }
 
 $Repo = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'python_runtime.ps1')
+$PythonRuntime = Resolve-BriefingPython -Repo $Repo
+$PythonPrefix = @($PythonRuntime.Prefix)
 $CredentialLoader = Join-Path $PSScriptRoot "load_bilibili_credentials.ps1"
 if (Test-Path -LiteralPath $CredentialLoader) {
   . $CredentialLoader
@@ -117,7 +120,10 @@ function Run-Logged([string]$Label, [string]$OutputPath, [string[]]$Args) {
   $previousPreference = $ErrorActionPreference
   $ErrorActionPreference = "Continue"
   try {
-    $output = & py @Args 2>&1
+    $NativeArgs = @($Args)
+    if ($NativeArgs.Count -and $NativeArgs[0] -eq '-3') { $NativeArgs = @($NativeArgs | Select-Object -Skip 1) }
+    $output = & $PythonRuntime.Executable @PythonPrefix @NativeArgs 2>&1
+    $NativeExitCode = $LASTEXITCODE
   } finally {
     $ErrorActionPreference = $previousPreference
   }
@@ -132,8 +138,8 @@ function Run-Logged([string]$Label, [string]$OutputPath, [string[]]$Args) {
     }
   }
   Set-Content -LiteralPath $OutputPath -Value ($stdoutLines -join "`n") -Encoding UTF8
-  if ($LASTEXITCODE -ne 0) {
-    throw "$Label failed with exit code $LASTEXITCODE"
+  if ($NativeExitCode -ne 0) {
+    throw "$Label failed with exit code $NativeExitCode"
   }
 }
 
@@ -185,10 +191,6 @@ try {
   if ((@("auto", "full", "generate", "morning-render") -contains $Mode) -and $GitDirty -and -not $AllowDirty) {
     throw "Refusing unattended generation from a dirty Git worktree. Commit verified changes first, or use -AllowDirty only for an explicit diagnostic run."
   }
-  $py = Get-Command py -ErrorAction SilentlyContinue
-  if (-not $py) {
-    throw "Python launcher 'py' not found"
-  }
   if ($Mode -eq "prepare-review") {
     $ReviewArgs = @("-3", "-m", "briefing", "prepare-review", "--date", "today", "--target", "bilibili", "--quality", $Quality, "--max-items", [string]$MaxItems, "--workers", "8")
     Run-Logged "Preparing midnight review package." (Join-Path $LogDir ("daily-review-" + $RunDate + ".txt")) $ReviewArgs
@@ -225,7 +227,7 @@ try {
     $previousPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
-      $AuthOutput = & py -3 -m briefing bilibili-check-auth 2>&1 | Out-String
+      $AuthOutput = & $PythonRuntime.Executable @PythonPrefix -m briefing bilibili-check-auth 2>&1 | Out-String
     } finally {
       $ErrorActionPreference = $previousPreference
     }

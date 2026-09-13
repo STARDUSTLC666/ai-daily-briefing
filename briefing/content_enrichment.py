@@ -1184,9 +1184,14 @@ async def _crawl4ai_once(url: str, *, user_agent: str | None, timeout: int, asse
     from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
     ua = user_agent or "DailyBilibiliBriefing/0.1 (+local; crawl4ai)"
+    from .browser_runtime import crawl_channel
+
+    channel = crawl_channel()
     browser_config = BrowserConfig(
         headless=True,
         browser_type="chromium",
+        chrome_channel=channel,
+        channel=channel,
         user_agent=ua,
         viewport_width=1360,
         viewport_height=900,

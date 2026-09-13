@@ -228,6 +228,12 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="python -m briefing", description="AI daily briefing and Bilibili package generator")
     sub = p.add_subparsers(dest="command")
 
+    doctor = sub.add_parser('doctor', help='check the project runtime and production prerequisites')
+    doctor.add_argument('--config', type=Path, default=None)
+    automation = sub.add_parser('automation-status', help='find the next safe step of an agent-audited daily run')
+    automation.add_argument('--run-dir', type=Path, required=True)
+    automation.add_argument('--config', type=Path, default=None)
+
     run = sub.add_parser("run", help="run full collect -> verify -> package pipeline")
     run.add_argument("--date", default="today", help="YYYY-MM-DD or today")
     run.add_argument("--target", default="bilibili", choices=["bilibili"], help="output target")
@@ -340,6 +346,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command in {'doctor', 'automation-status'}:
+        from .automation import automation_status, runtime_doctor
+        payload = runtime_doctor(args.config) if args.command == 'doctor' else automation_status(args.run_dir, config=args.config)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0 if payload['ok'] else 1
     if args.command in {None, "run"}:
         result = run_pipeline(
             date=getattr(args, "date", "today"),
