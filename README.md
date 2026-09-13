@@ -2,6 +2,8 @@
 
 > 一个证据优先、可审计、面向中文内容创作者的 AI 新闻视频自动化流水线。
 
+中文 · **[English](README.en.md)**
+
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![Remotion](https://img.shields.io/badge/Remotion-4.0-0B84F3)
 ![Tests](https://img.shields.io/badge/tests-Python%20%2B%20Node-2EA44F)
