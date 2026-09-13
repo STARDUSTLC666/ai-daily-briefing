@@ -75,7 +75,9 @@ class PipelineLock:
                 except Exception:
                     pid = 0
                     age = max(0.0, time.time() - self.path.stat().st_mtime)
-                dead_owner = parsed and (not _pid_alive(pid) or age > self.stale_after_seconds)
+                # Age is not evidence of death: a long 4K render can exceed the
+                # stale timeout. Never allow a second producer beside a live one.
+                dead_owner = parsed and not _pid_alive(pid)
                 abandoned_malformed = not parsed and age > min(30, self.stale_after_seconds)
                 if attempt == 0 and (dead_owner or abandoned_malformed):
                     self.path.unlink(missing_ok=True)

@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from briefing.run_lock import PipelineLock, _pid_alive
@@ -29,6 +30,17 @@ class PipelineLockTests(unittest.TestCase):
             with PipelineLock(path):
                 payload = json.loads(path.read_text(encoding="utf-8"))
                 self.assertEqual(payload["pid"], os.getpid())
+
+    def test_live_owner_is_not_evicted_when_render_exceeds_stale_timeout(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / 'long-render.lock'
+            with PipelineLock(path):
+                os.utime(path, (1, 1))
+                with patch('briefing.run_lock._pid_alive', return_value=True):
+                    with self.assertRaisesRegex(RuntimeError, 'already active'):
+                        with PipelineLock(path, stale_after_seconds=1):
+                            self.fail('a live renderer lost its lock')
+                self.assertTrue(path.exists())
 
 
 if __name__ == "__main__":
