@@ -51,9 +51,23 @@ RSS feeds, aggregator pages and community posts only supply leads. Nothing reach
 ### Install
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1
+```
+
+The script creates `.venv`, installs the Python and Remotion dependencies, and reuses the Chrome or Edge already on your machine as the crawling browser, so no extra Chromium download is needed. Manual installation still works:
+
+```powershell
 py -3 -m pip install -e .
 npm --prefix .\remotion ci
 ```
+
+### Self-check
+
+```powershell
+py -3 -m briefing doctor
+```
+
+`doctor` reports, as JSON, whether the Python version, dependency modules, Node 22, FFmpeg, Remotion, the render and crawl browsers, the edition configuration and the Bilibili credentials are all in place. Every failing check carries its own fix command; the exit code is 1 when any required check fails.
 
 ### Build today's briefing
 
@@ -91,6 +105,16 @@ Each run is written to `runs/YYYY-MM-DD/`:
 
 ![Rendered frames and evidence shots](docs/assets/sample-contact-sheet.png)
 
+## Visual style
+
+The default is the **newsroom** style: the approved manuscript is paginated by fact density (at most three cards or 220 characters per page), headline sizes step down with text length, and no sentence is truncated and no card dropped. Set an environment variable to go back to the previous layout:
+
+```powershell
+$env:BRIEFING_VISUAL_STYLE = "classic"
+```
+
+Pagination and page selection live in `remotion/src/newsroom-layout.ts` as pure functions covered by `remotion/tests/newsroom.test.mjs`. `docs/examples/` holds a small, separately reviewed editorial sample that `scripts/render_newsroom_preview.py` pushes through the real pipeline to produce a design sample; it is explicitly marked non-publishable and generates no fact claims, source audits or submission attestations.
+
 ## Quality gates
 
 Before publishing, at minimum:
@@ -105,6 +129,7 @@ Main checks:
 - Whether each story's timestamp falls inside the configured freshness window.
 - Whether core facts trace back to an official source or reliable primary evidence.
 - Whether rumours, community signals and confirmed facts carry distinct labels.
+- Whether narration or card copy contains sensational wording, which blocks the run until a human reviews it.
 - Whether every required evidence screenshot actually appears in the finished video.
 - Whether subtitles, timings, cover, audio and submission metadata all come from the same run.
 - Whether LUFS, true peak, long silences and media parameters pass acceptance.
@@ -114,6 +139,14 @@ If any critical check fails, `publish_allowed` stays `false`.
 ## Sources & configuration
 
 News sources, collection windows and experimental switches live in [sources.yaml](sources.yaml) (comments are Chinese-only for now). Keep the defaults for your first local run, then tune the source list for your own audience.
+
+Configuration supports `extends` inheritance and `source_filter` bulk disabling, so a new edition can be derived without copying the whole source table. The repository ships [sources.public-web.json](sources.public-web.json): it inherits `sources.yaml`, disables social-account and mirror sources plus every `x_` prefixed source, and records the X coverage gate as `not_requested` — a public-web edition never claims to have checked X.
+
+```powershell
+py -3 -m briefing run --date today --config .\sources.public-web.json
+```
+
+The configuration that actually takes effect after inheritance and filtering is written to the run provenance as `effective_config_sha256`.
 
 For sites that require login, use a project-dedicated browser profile:
 
@@ -142,6 +175,14 @@ py -3 -m briefing complete-agent-run --run-dir .\runs\YYYY-MM-DD
 ```
 
 An agent may only edit within the frozen story and fact set; it cannot bypass sources, media hashes or the publish gate. Implementation details are in the [agent automation runbook](docs/codex-automation-runbook.md).
+
+A scheduled job does not have to infer its own progress:
+
+```powershell
+py -3 -m briefing automation-status --run-dir .\runs\YYYY-MM-DD
+```
+
+It reads artifacts only and returns the current `stage` plus the next command; it never writes an audit, declares facts checked, or submits a video. It returns `blocked` when the run date is not today, when a design sample leaked into daily production, or when a previous submission is still stuck in `submitting` and needs a human check in the creator dashboard. Only one producer may hold the lock for a given day, and a long 4K render is never evicted as if it were a stale lock.
 
 ## Publishing to Bilibili
 

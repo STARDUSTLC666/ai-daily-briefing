@@ -51,9 +51,23 @@ RSS、聚合页和社区帖子只负责发现线索。能够进入最终视频�
 ### 安装
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1
+```
+
+脚本创建 `.venv`、装好 Python 与 Remotion 依赖，并复用本机已安装的 Chrome 或 Edge 作为抓取浏览器，不需要额外下载一份 Chromium。也可以手工安装：
+
+```powershell
 py -3 -m pip install -e .
 npm --prefix .\remotion ci
 ```
+
+### 自检
+
+```powershell
+py -3 -m briefing doctor
+```
+
+`doctor` 以 JSON 逐项报告 Python 版本、依赖模块、Node 22、FFmpeg、Remotion、渲染与抓取浏览器、来源配置和 Bilibili 凭据是否就位，每个未通过项都附带修复命令；任一必需项失败时退出码为 1。
 
 ### 生成今日快报
 
@@ -91,6 +105,16 @@ py -3 -m briefing prepare-review --date today --target bilibili
 
 ![渲染抽帧与证据画面](docs/assets/sample-contact-sheet.png)
 
+## 视觉风格
+
+默认使用 **newsroom** 风格：审定稿按事实密度自动分页（每页最多 3 张卡片或 220 字），标题按长度降字号，既不截断句子也不丢卡片；需要旧版排版时设置环境变量切回：
+
+```powershell
+$env:BRIEFING_VISUAL_STYLE = "classic"
+```
+
+分页与取页逻辑集中在 `remotion/src/newsroom-layout.ts`，是纯函数并由 `remotion/tests/newsroom.test.mjs` 覆盖。`docs/examples/` 里有一份人工审过的小样例，配合 `scripts/render_newsroom_preview.py` 走真实管线渲染设计样片；样片明确标记为不可发布，不会生成事实断言、来源审计或投稿凭证。
+
 ## 质量门禁
 
 发布前至少执行：
@@ -105,6 +129,7 @@ py -3 -m briefing bilibili-preflight --run-dir .\runs\YYYY-MM-DD
 - 新闻时间是否位于配置的新鲜窗口内。
 - 核心事实是否能追溯到官方源或可靠的一手证据。
 - 传闻、社区反馈和已确认事实是否使用不同标签。
+- 口播与卡片文案是否出现标题党措辞，命中即阻断并要求人工复核。
 - 必需证据截图是否真实出现在成片中。
 - 字幕、时间轴、封面、音频和投稿信息是否来自同一次运行。
 - LUFS、True Peak、长静音和媒体参数是否通过验收。
@@ -114,6 +139,14 @@ py -3 -m briefing bilibili-preflight --run-dir .\runs\YYYY-MM-DD
 ## 来源与配置
 
 新闻源、采集窗口和实验开关集中在 [sources.yaml](sources.yaml)。建议先保留默认值完成一次本地运行，再按自己的受众调整来源。
+
+配置支持 `extends` 继承和 `source_filter` 批量停用，用来在不复制整份来源表的前提下切出不同档位。仓库自带 [sources.public-web.json](sources.public-web.json)：它继承 `sources.yaml`，停用社交账号、镜像源和所有 `x_` 前缀来源，并把 X 覆盖门禁记为 `not_requested`——公开网页版不会声称自己检查过 X。
+
+```powershell
+py -3 -m briefing run --date today --config .\sources.public-web.json
+```
+
+继承与过滤之后真正生效的配置，会以 `effective_config_sha256` 写入运行溯源清单。
 
 需要登录的站点应使用项目专用浏览器配置：
 
@@ -142,6 +175,14 @@ py -3 -m briefing complete-agent-run --run-dir .\runs\YYYY-MM-DD
 ```
 
 Agent 只能在冻结的故事和事实范围内编辑，不能绕过来源、媒体哈希或发布门禁。实现细节见 [Codex 自动化运行手册](docs/codex-automation-runbook.md)。
+
+定时任务不必自己推断进度：
+
+```powershell
+py -3 -m briefing automation-status --run-dir .\runs\YYYY-MM-DD
+```
+
+它只读产物，返回当前 `stage` 与下一步命令，不会代写审计、不会宣布事实已核验、也不会提交视频。日期不是当天、设计样片混入日更、或上一次投稿仍停在 `submitting` 时，它直接返回 blocked 并要求先去创作中心人工确认。同一天只允许一个生产进程持有锁：4K 渲染跑得再久也不会被当成僵死锁抢走。
 
 ## Bilibili 发布
 
