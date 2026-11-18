@@ -21,7 +21,8 @@ DEFAULT_TAGS = ("AI 日报", "AI", "人工智能", "大模型", "科技早报", 
 
 def _date_suffix(run_date: str) -> str:
     stamp = (run_date or "")[:10]
-    return f"【AI 日报 {stamp if re.fullmatch(r'\d{4}-\d{2}-\d{2}', stamp) else now_utc().strftime('%Y-%m-%d')}】"
+    resolved = stamp if re.fullmatch(r"\d{4}-\d{2}-\d{2}", stamp) else now_utc().strftime("%Y-%m-%d")
+    return f"【AI 日报 {resolved}】"
 
 
 def _fit_title(base: str, suffix: str, max_len: int = 72) -> str:
