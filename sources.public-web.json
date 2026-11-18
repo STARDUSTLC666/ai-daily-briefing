@@ -1,12 +1,12 @@
 {
   "extends": "sources.yaml",
   "profile": "public-web",
-  "description": "Public official websites with agent source/copy/visual review. Social accounts are outside this edition's coverage.",
+  "description": "Public official websites and verified feeds without social account lanes.",
   "defaults": {
     "require_x_coverage": false
   },
   "source_filter": {
-    "exclude_types": ["agent_social", "opencli_social", "rsshub"],
+    "exclude_types": ["agent_social"],
     "exclude_id_prefixes": ["x_"]
   }
 }

@@ -1,6 +1,6 @@
 # AI Daily Briefing
 
-> 一个证据优先、可审计、面向中文内容创作者的 AI 新闻视频自动化流水线。
+> 一个证据优先、可审计、分层模块化的中文 AI 新闻视频自动化流水线。
 
 中文 · **[English](README.en.md)**
 
@@ -10,200 +10,122 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D4?logo=windows11&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-111111)
 
-AI Daily Briefing 把过去 24 小时分散在官网、更新日志、论文、媒体和社区中的 AI 动态，整理为带证据画面的中文视频。它不把 RSS 摘要直接改写成新闻，而是执行来源分级、事件聚类、官方源回溯、事实冻结、配音渲染和发布前验收，最终生成一套可追溯的投稿包。
+AI Daily Briefing 把过去 24 小时分散在官网、更新日志、论文、媒体与社区中的 AI 动态，生产为每一条事实均可溯源、画面自带证据核验的中文新闻视频。它不把 RSS 摘要直接改写成口播，而是通过严格分层的流水线执行来源分级、事件聚类、官方源回溯、事实主张冻结、Editorial Newsroom 版式渲染与发布前 6 道验收门禁，最终输出可追溯的 Bilibili 投稿包。
 
 ![AI Daily Briefing 示例封面](docs/assets/sample-cover.png)
 
-## 项目亮点
-
-- **证据优先**：每条新闻保留原始链接、来源等级、发布时间、证据截图和风险标记。
-- **失败即阻断**：旧闻、未来时间、低信息文案、缺失截图、音频异常或清单不一致都会阻止发布。
-- **完整内容生产**：自动生成中文稿件、字幕、配音、1080p/4K 视频、封面和平台投稿信息。
-- **可复核**：稿件、画面、音频和发布包均有独立审计文件，并通过 SHA-256 绑定同一次运行。
-- **模型解耦**：采集、门禁和渲染由本地代码完成；人工或 AI Agent 可作为可选复核层接入。
-- **默认保护凭据**：登录态、浏览器配置、Token、运行日志和每日产物均不会进入 Git。
-
-## 工作流
+## 架构设计（v0.2 分层体系）
 
 ```mermaid
 flowchart LR
-    A["多源发现"] --> B["事件聚类与去重"]
-    B --> C["官方源回溯"]
-    C --> D["事实与证据冻结"]
-    D --> E["中文稿件与卡片"]
-    E --> F["配音与 Remotion 渲染"]
-    F --> G["视觉、音频与清单验收"]
-    G --> H["Bilibili 投稿包"]
-    G --> I["竖版视频与图文草稿"]
+    A["briefing/ingest<br/>多源发现 · 全文抽取 · 官方回溯 · 证据截图"] --> B["briefing/editorial<br/>事件聚类 · 事实主张核验 · 编审规划"]
+    B --> C["briefing/verify<br/>新鲜度/溯源门禁 · 合同与签名校验"]
+    C --> D["briefing/review<br/>模块化本地审稿工作台 Web UI"]
+    C --> E["briefing/render + remotion/<br/>TTS 响度标准化 · Newsroom 单通道渲染"]
+    D --> E
+    E --> F["briefing/publish<br/>6 道成片验收 · Bilibili 两阶段原子投稿"]
 ```
 
-RSS、聚合页和社区帖子只负责发现线索。能够进入最终视频的内容，必须在新鲜度、证据、文案和视觉门禁中逐项通过。
+| 子包 / 目录 | 核心职责 |
+| --- | --- |
+| `briefing/core/` | 统一领域模型、配置继承（`extends` / `source_filter`）、SQLite WAL 存储、AI 实体/模型注册表、文本/URL 标准化与进程锁 |
+| `briefing/ingest/` | RSS/Atom、Hugging Face、Google News、官网动态与 Agent 社交线索采集，全文抽取、1/2 跳官方源回溯与证据截图捕获 |
+| `briefing/editorial/` | 事件簇合并、原子 `FactClaim` 摘录核验、结构化 `EditorialPlan` 与 `Storyboard` 生成、多样性选题与投稿包单次原子写出 |
+| `briefing/verify/` | 24 小时新鲜度与来源等级门禁、审稿—渲染指纹契约、成片 6 道验收门禁与洁净工作区 HMAC-SHA256 发布签名 |
+| `briefing/review/` | 本地回环审稿工作台（独立 `web/` 前端：支持浅色纸感/深色石板自适应主题、实时口播语速与文案卫生检查、封面编辑与事实溯源抽查） |
+| `briefing/render/` | Edge TTS / IndexTTS2 合成、EBU R128 响度标准化（`-15 LUFS`）、单次 FFmpeg 音轨+字幕压制、9:16 竖屏与公众号衍生导出 |
+| `briefing/publish/` | 运行环境 `doctor` 自检、只读自动化状态机、官网爬虫健康审计与 Bilibili 开放平台两阶段防重投稿 |
+| `remotion/` | 模块化 **Editorial Newsroom** 视觉引擎（`types` / `theme` / `layout` / `chrome` / `scenes` / `cover`），严格保障字幕安全区与双尺寸封面（4:3 & 16:9） |
 
 ## 快速开始
 
-### 环境
+### 环境要求
 
-- Windows 10/11
-- Python 3.11 或更高版本
-- Node.js 22 或更高版本
-- FFmpeg
+- Windows 10/11（亦支持 macOS / Linux 本地运行与测试）
+- Python 3.11+
+- Node.js 22+
+- FFmpeg（含 `ffprobe`）
 
-### 安装
+### 一键初始化
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1
 ```
 
-脚本创建 `.venv`、装好 Python 与 Remotion 依赖，并复用本机已安装的 Chrome 或 Edge 作为抓取浏览器，不需要额外下载一份 Chromium。也可以手工安装：
+也可手动安装：
 
 ```powershell
 py -3 -m pip install -e .
 npm --prefix .\remotion ci
 ```
 
-### 自检
+### 环境自检
 
 ```powershell
 py -3 -m briefing doctor
 ```
 
-`doctor` 以 JSON 逐项报告 Python 版本、依赖模块、Node 22、FFmpeg、Remotion、渲染与抓取浏览器、来源配置和 Bilibili 凭据是否就位，每个未通过项都附带修复命令；任一必需项失败时退出码为 1。
+`doctor` 以 JSON 逐项检查 Python、依赖模块、Node 22+、FFmpeg、Remotion、本机浏览器、配置源与可选 Bilibili 凭据，并为未通过项提供修复指令。
 
-### 生成今日快报
+## 统一 CLI（8 个子命令）
+
+| 命令 | 用途 |
+| --- | --- |
+| `briefing run` | 全自动端到端运行（采集 → 核验 → 渲染 → 质量门禁，可选 `--repurpose`、`--publish`） |
+| `briefing prepare` | 采集并生成工作区（`--mode review\|agent\|draft`，支持 `--append-morning` 早间增量合并） |
+| `briefing review` | 启动本地审稿 Web 工作台（`127.0.0.1:8765`），或通过 `--finalize` 冻结定稿 |
+| `briefing render` | 统一渲染定稿或设计样片（`--quality 1080p\|4k`、`--tts edge\|indextts2`、`--visual-qa`、`--fixture`） |
+| `briefing verify` | 执行成片 6 道质量与溯源门禁（支持 `--complete-visual-qa` 关闭视觉审计并签名） |
+| `briefing publish` | Bilibili 发布前预检（默认 dry-run，`--check-auth` 探测令牌，`--execute` 真实上传） |
+| `briefing repurpose` | 导出 9:16 竖版视频与公众号图文草稿，或通过 `--prune-days N` 回收旧运行大体积媒体 |
+| `briefing doctor` | 运行环境自检、`--status <run-dir>` 查询无人值守阶段、`--audit-sources` 审计官网爬虫、`--collect-x` 抓取候选 |
+
+### 常用示例
 
 ```powershell
-py -3 -m briefing run --date today --target bilibili
+# 1. 全自动生成今日 1080p / 4K 快报（公开网页源配置）
+py -3 -m briefing run --date today --config .\sources.public-web.json
+py -3 -m briefing run --date today --quality 4k
+
+# 2. 人工审稿工作流：准备审稿包 -> 打开浏览器审稿台 -> 渲染定稿
+py -3 -m briefing prepare --mode review --date today
+py -3 -m briefing review --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing render --run-dir .\runs\YYYY-MM-DD --quality 1080p
+
+# 3. 渲染非发布设计样片（不生成事实断言与发布许可）
+py -3 -m briefing render --fixture .\docs\examples\newsroom-2026-09-07.json --run-dir .\runs\preview
+
+# 4. 验收与 Bilibili 预检 / 上传
+py -3 -m briefing verify --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing publish --run-dir .\runs\YYYY-MM-DD --tid 231
+py -3 -m briefing publish --run-dir .\runs\YYYY-MM-DD --tid 231 --execute
 ```
 
-生成 4K 版本：
-
-```powershell
-py -3 -m briefing run --date today --target bilibili --quality 4k
-```
-
-只采集和准备审稿包，不渲染视频：
-
-```powershell
-py -3 -m briefing prepare-review --date today --target bilibili
-```
-
-## 输出内容
-
-每次运行保存在 `runs/YYYY-MM-DD/`：
+## 运行产物（`runs/YYYY-MM-DD/`）
 
 | 文件 | 用途 |
 | --- | --- |
-| `final.mp4` | 最终横版视频 |
-| `cover.png` / `cover-16x9.png` | 4:3 与 16:9 封面 |
-| `subtitles.srt` | 中文字幕 |
-| `script.json` | 口播、卡片和真实时间轴 |
-| `fact-check.md` | 事实、风险等级与证据链 |
-| `sources.md` | 来源健康和采集结果 |
-| `bilibili.md` / `bilibili.json` | 标题、简介、标签和分区信息 |
-| `manifest.json` | 机器可读的运行清单 |
-| `evidence-screenshots/` | 原始证据画面 |
+| `final.mp4` | 最终横版视频（单通道合成 48kHz 立体声与安全区字幕） |
+| `cover.png` / `cover-16x9.png` | Bilibili 4:3 主封面与 16:9 横版封面（默认锚定头条新闻） |
+| `subtitles.srt` | 句级对齐中文字幕 |
+| `script.json` | 含真实时间戳的口播、卡片与证据页时间轴 |
+| `fact-check.md` / `sources.md` | 事实核查链路、风险等级与来源健康报告 |
+| `bilibili.md` / `bilibili.json` / `pinned-comment.md` | 标题、简介章节时间轴、标签与置顶互动问题 |
+| `manifest.json` / `run-state.json` | 机器可读溯源清单、阶段状态与 SHA-256 契约哈希 |
+| `evidence-screenshots/` | 经校验的一手网页/原帖证据截图 |
 
 ![渲染抽帧与证据画面](docs/assets/sample-contact-sheet.png)
 
-## 视觉风格
-
-默认使用 **newsroom** 风格：审定稿按事实密度自动分页（每页最多 3 张卡片或 220 字），标题按长度降字号，既不截断句子也不丢卡片；需要旧版排版时设置环境变量切回：
-
-```powershell
-$env:BRIEFING_VISUAL_STYLE = "classic"
-```
-
-分页与取页逻辑集中在 `remotion/src/newsroom-layout.ts`，是纯函数并由 `remotion/tests/newsroom.test.mjs` 覆盖。`docs/examples/` 里有一份人工审过的小样例，配合 `scripts/render_newsroom_preview.py` 走真实管线渲染设计样片；样片明确标记为不可发布，不会生成事实断言、来源审计或投稿凭证。
-
 ## 质量门禁
 
-发布前至少执行：
+任何进入发布环节的运行包都必须通过 6 道硬性检查（任一关键项失败时 `publish_allowed` 保持为 `false`）：
 
-```powershell
-py -3 -m briefing verify-run --run-dir .\runs\YYYY-MM-DD
-py -3 -m briefing bilibili-preflight --run-dir .\runs\YYYY-MM-DD
-```
-
-主要检查项：
-
-- 新闻时间是否位于配置的新鲜窗口内。
-- 核心事实是否能追溯到官方源或可靠的一手证据。
-- 传闻、社区反馈和已确认事实是否使用不同标签。
-- 口播与卡片文案是否出现标题党措辞，命中即阻断并要求人工复核。
-- 必需证据截图是否真实出现在成片中。
-- 字幕、时间轴、封面、音频和投稿信息是否来自同一次运行。
-- LUFS、True Peak、长静音和媒体参数是否通过验收。
-
-任何关键项失败时，`publish_allowed` 都会保持为 `false`。
-
-## 来源与配置
-
-新闻源、采集窗口和实验开关集中在 [sources.yaml](sources.yaml)。建议先保留默认值完成一次本地运行，再按自己的受众调整来源。
-
-配置支持 `extends` 继承和 `source_filter` 批量停用，用来在不复制整份来源表的前提下切出不同档位。仓库自带 [sources.public-web.json](sources.public-web.json)：它继承 `sources.yaml`，停用社交账号、镜像源和所有 `x_` 前缀来源，并把 X 覆盖门禁记为 `not_requested`——公开网页版不会声称自己检查过 X。
-
-```powershell
-py -3 -m briefing run --date today --config .\sources.public-web.json
-```
-
-继承与过滤之后真正生效的配置，会以 `effective_config_sha256` 写入运行溯源清单。
-
-需要登录的站点应使用项目专用浏览器配置：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\open_authenticated_browser.ps1 -Url "https://x.com/"
-```
-
-登录态只保存在被 Git 忽略的 `.local/`。不要把日常浏览器配置、Cookie 或账号导出文件复制到仓库。
-
-默认配音使用 Edge TTS。IndexTTS2 是可选后端，必须显式提供本地安装路径和已授权音色：
-
-```powershell
-$env:BRIEFING_INDEXTTS2_ROOT = "D:\path\to\IndexTTS2"
-powershell -ExecutionPolicy Bypass -File .\scripts\run_indextts2.ps1 -Profile "your-profile-id"
-```
-
-## 可选 Agent 复核
-
-项目可以完全由本地代码生成诊断包，也可以接入人工或 AI Agent 做来源复核、稿件取舍和成片验收。当前仓库提供一套受约束的 Agent 工作流：
-
-```powershell
-py -3 -m briefing prepare-agent --date today --quality 1080p --force
-py -3 -m briefing finalize-agent --run-dir .\runs\YYYY-MM-DD
-py -3 -m briefing render-agent --run-dir .\runs\YYYY-MM-DD --quality 1080p
-py -3 -m briefing complete-agent-run --run-dir .\runs\YYYY-MM-DD
-```
-
-Agent 只能在冻结的故事和事实范围内编辑，不能绕过来源、媒体哈希或发布门禁。实现细节见 [Codex 自动化运行手册](docs/codex-automation-runbook.md)。
-
-定时任务不必自己推断进度：
-
-```powershell
-py -3 -m briefing automation-status --run-dir .\runs\YYYY-MM-DD
-```
-
-它只读产物，返回当前 `stage` 与下一步命令，不会代写审计、不会宣布事实已核验、也不会提交视频。日期不是当天、设计样片混入日更、或上一次投稿仍停在 `submitting` 时，它直接返回 blocked 并要求先去创作中心人工确认。同一天只允许一个生产进程持有锁：4K 渲染跑得再久也不会被当成僵死锁抢走。
-
-## Bilibili 发布
-
-发布命令默认仅执行 dry-run：
-
-```powershell
-py -3 -m briefing bilibili-publish --run-dir .\runs\YYYY-MM-DD --tid 231
-```
-
-真实上传前，使用脚本将开放平台凭据加密保存到当前 Windows 用户：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\configure_bilibili.ps1
-py -3 -m briefing bilibili-check-auth
-```
-
-只有在 preflight 通过后，才使用显式的 `--execute`：
-
-```powershell
-py -3 -m briefing bilibili-publish --run-dir .\runs\YYYY-MM-DD --execute
-```
+1. **时效与首发时间**：核对正文最早发布时间与 X Snowflake 时间戳，阻断旧闻重浮现与未来时间。
+2. **一手源与分级披露**：区分官方确认（绿）、媒体/论文保守采用（黄）与社交一线/社区风向（强制显著免责声明与原帖截图）。
+3. **文案卫生与无省略号**：零标题党措辞、零省略号（`…`/`...`）、零未闭合括号与裸英文长句；单条不合格自动剔除补选。
+4. **画面与证据可见性**：每张必需证据截图均通过 SHA-256 绑定至成片渲染清单，严格避开底部字幕安全区。
+5. **媒体与音频标准**：`yuv420p`、48kHz 立体声、`-16..-14 LUFS` 响度、`TP <= -1.5 dBTP` 且低静音占比。
+6. **两阶段防重上传**：Bilibili 投稿前快照校验全部核心文件哈希，中断在 `submitting` 状态时自动阻断重投并提示人工核查。
 
 ## 测试
 
@@ -213,23 +135,15 @@ npm --prefix .\remotion test
 npm --prefix .\remotion run typecheck
 ```
 
-GitHub Actions 会在 Python 3.11 和 3.13 上运行 Python 测试，并单独检查 Remotion 时间轴与 TypeScript 类型。
+## 仓库安全边界
 
-## 仓库边界
+公开仓库仅包含源码、测试、示例配置与脱敏展示素材。以下内容始终保留在本机 Git 忽略目录中：
+- `.env`、开放平台凭据、Cookie 与 `.local/` 专用浏览器配置
+- `runs/`、`data/`、`logs/` 数据库与每日运行产物
+- 未获公开分发授权的第三方音色或素材
 
-公开仓库只包含源码、测试、示例配置和经过筛选的展示素材。以下内容必须始终留在本机：
-
-- `.env`、Token、Cookie、浏览器登录态和 Windows 凭据。
-- `.local/`、`runs/`、`logs/`、数据库和证据缓存。
-- 未取得公开授权的音色、图片、视频和第三方材料。
-- 账号 ID、投稿后台截图和本机绝对路径。
-
-发现安全问题时，请使用 GitHub Private Vulnerability Reporting，不要在公开 Issue 中粘贴凭据或登录信息。详见 [SECURITY.md](SECURITY.md)。
-
-## 参与贡献
-
-欢迎提交来源适配、事实核验规则、渲染模板、测试和文档改进。开始前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+安全问题请通过 GitHub Private Vulnerability Reporting 反馈，详见 [SECURITY.md](SECURITY.md)。
 
 ## License
 
-本项目采用 [MIT License](LICENSE)。
+[MIT License](LICENSE)

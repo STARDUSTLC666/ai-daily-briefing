@@ -15,7 +15,7 @@
   },
   "segments": [
     {
-      "kind": "intro", "title": "AI 这一天", "caption": "每天，把 AI 世界的新变化讲清楚。",
+      "kind": "intro", "title": "AI 日报", "caption": "每天几分钟，用一手证据讲清 AI 世界的新变化。",
       "text": "OpenAI 说，AI 已经在参与它的研究。这期，看看刚公开的内部数据。",
       "active_tab": "Intro", "bottom_active": "开场",
       "cards": [{"title": "OpenAI", "body": "AI 开始参与 AI 研究"}],
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "kind": "outro", "title": "AI 这一天", "caption": "AI 这一天 · 明天见", "active_tab": "Outro",
+      "kind": "outro", "title": "AI 日报", "caption": "AI 日报 · 下期见", "active_tab": "Outro",
       "text": "你最想让 AI 帮你完成哪一步研究工作？我们下期见。", "cards": [],
       "visual_pages": [{"kind": "closing_continuation", "cards": []}]
     }

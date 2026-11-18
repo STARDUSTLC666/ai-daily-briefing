@@ -18,9 +18,7 @@
     "selection_quality_min_score": 68,
     "selection_strict_auto": true,
     "selection_min_publish_items": 1,
-    "selection_target_items": 0,
-    "x_rss_base_url": "https://nitter.net",
-    "user_agent": "DailyBilibiliBriefing/0.1 (+local; AI daily briefing)",
+    "user_agent": "AIDailyBriefing/0.2 (+local)",
     "content_enrichment_max_items": 32,
     "content_enrichment_per_domain_limit": 6,
     "content_enrichment_capture_assets": false,
@@ -29,10 +27,8 @@
     "content_enrichment_candidate_multiplier": 5,
     "content_enrichment_candidate_max_per_entity": 8,
     "content_enrichment_candidate_max_per_source": 8,
-    "content_enrichment_auto_runtime_repair": false,
     "official_reconciliation_max_items": 12,
     "automatic_quality_repair": true,
-    "auto_repair": true,
     "selection_max_items": 0
   },
   "sources": [
@@ -615,23 +611,6 @@
       ]
     },
     {
-      "id": "meta_ai_official_sitemap",
-      "name": "Meta AI Official News Sitemap",
-      "tier": "A",
-      "type": "sitemap",
-      "region": "global",
-      "url": "https://about.fb.com/sitemap_index.xml",
-      "enabled": false,
-      "reliability": "official",
-      "topics": [
-        "Meta",
-        "Meta AI",
-        "Muse",
-        "Spark",
-        "模型"
-      ]
-    },
-    {
       "id": "kwaipilot_hf_models",
       "name": "Kwaipilot Hugging Face Models",
       "tier": "A",
@@ -914,20 +893,6 @@
       ]
     },
     {
-      "id": "rsshub_36kr_newsflash",
-      "name": "RSSHub 36氪快讯（需 RSSHUB_BASE_URL）",
-      "tier": "D",
-      "type": "rsshub",
-      "region": "cn",
-      "url": "/36kr/newsflash",
-      "enabled": false,
-      "reliability": "aggregator",
-      "topics": [
-        "AI",
-        "newsflash"
-      ]
-    },
-    {
       "id": "x_codex_official_leads",
       "name": "Codex verified X official account leads",
       "tier": "A",
@@ -981,117 +946,6 @@
         "product",
         "community signal",
         "Codex agent lead"
-      ]
-    },
-    {
-      "id": "x_openai_staff_tibo",
-      "name": "X / OpenAI Codex staff: Tibo",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/thsottiaux",
-      "enabled": false,
-      "reliability": "official_personnel",
-      "topics": [
-        "OpenAI",
-        "Codex",
-        "GPT",
-        "model"
-      ]
-    },
-    {
-      "id": "x_openai_sama",
-      "name": "X / OpenAI: Sam Altman",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/sama",
-      "enabled": false,
-      "reliability": "official_personnel",
-      "topics": [
-        "OpenAI",
-        "ChatGPT",
-        "GPT",
-        "Sora"
-      ]
-    },
-    {
-      "id": "x_openai_gdb",
-      "name": "X / OpenAI: Greg Brockman",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/gdb",
-      "enabled": false,
-      "reliability": "official_personnel",
-      "topics": [
-        "OpenAI",
-        "ChatGPT",
-        "GPT",
-        "developer"
-      ]
-    },
-    {
-      "id": "x_anthropic_dario",
-      "name": "X / Anthropic: Dario Amodei",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/darioamodei",
-      "enabled": false,
-      "reliability": "official_personnel",
-      "topics": [
-        "Anthropic",
-        "Claude",
-        "model",
-        "safety"
-      ]
-    },
-    {
-      "id": "x_google_deepmind_demis",
-      "name": "X / Google DeepMind: Demis Hassabis",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/demishassabis",
-      "enabled": false,
-      "reliability": "official_personnel",
-      "topics": [
-        "Google",
-        "DeepMind",
-        "Gemini",
-        "model"
-      ]
-    },
-    {
-      "id": "x_xai_grok",
-      "name": "X / xAI: Grok",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/xai",
-      "enabled": false,
-      "reliability": "official_social",
-      "topics": [
-        "xAI",
-        "Grok",
-        "model",
-        "product"
-      ]
-    },
-    {
-      "id": "x_testingcatalog_signal",
-      "name": "X / TestingCatalog（社区线索）",
-      "tier": "C",
-      "type": "rsshub",
-      "region": "global",
-      "url": "/twitter/user/testingcatalog",
-      "enabled": false,
-      "reliability": "community",
-      "topics": [
-        "AI",
-        "product",
-        "community signal"
       ]
     }
   ]

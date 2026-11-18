@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try { const s = localStorage.getItem("briefing-color-scheme"); if (s === "light" || s === "dark") document.querySelector('meta[name="color-scheme"]').content = s; } catch {}
+  </script>
+  <title>AI 日报 · 审稿工作台</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-group">
+      <div class="title-row">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <h1>AI 日报 · 审稿工作台</h1>
+        <span id="dirtyBadge" class="status-chip" data-dirty="false">已同步</span>
+      </div>
+      <p id="runMeta" class="run-meta">正在读取本地稿件与核验清单……</p>
+    </div>
+
+    <div class="toolbar" role="toolbar" aria-label="审稿操作栏">
+      <button type="button" id="openCoverBtn" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <rect x="2.5" y="3.5" width="15" height="13" rx="2.5"></rect>
+          <path d="M6 8h8M6 12h5"></path>
+        </svg>
+        <span>封面文案</span>
+      </button>
+
+      <button type="button" id="openProvenanceBtn" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <circle cx="10" cy="10" r="7.2"></circle>
+          <path d="M10 6.5v4l2.6 1.6"></path>
+        </svg>
+        <span>事实溯源</span>
+      </button>
+
+      <button type="button" id="openSettingsBtn" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <circle cx="10" cy="10" r="3"></circle>
+          <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4"></path>
+        </svg>
+        <span>外观</span>
+      </button>
+
+      <button type="button" id="saveBtn" class="btn btn-primary">
+        <svg class="icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M4 10.5l4 4L16 6"></path>
+        </svg>
+        <span>保存并生成定稿</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="workbench">
+    <aside class="sidebar" aria-label="稿件导航">
+      <div class="sidebar-header">
+        <h2 class="panel-heading">稿件段落</h2>
+        <span id="countPill" class="pill">0 / 0 条</span>
+      </div>
+
+      <search class="search-box">
+        <label for="segmentSearch" class="sr-only">搜索段落标题、口播稿或编号</label>
+        <input type="search" id="segmentSearch" placeholder="搜索标题、正文、story_id…">
+        <ul class="filter-pills" aria-label="段落筛选">
+          <li><button type="button" class="filter-pill" data-filter="all" aria-pressed="true">全部</button></li>
+          <li><button type="button" class="filter-pill" data-filter="enabled" aria-pressed="false">已启用</button></li>
+          <li><button type="button" class="filter-pill" data-filter="headline" aria-pressed="false">头条</button></li>
+          <li><button type="button" class="filter-pill" data-filter="brief" aria-pressed="false">快讯</button></li>
+        </ul>
+      </search>
+
+      <ul id="segmentList" class="segment-list" aria-label="稿件段落列表"></ul>
+
+      <div class="sidebar-footer">
+        <button type="button" id="addNewsBtn" class="btn btn-secondary btn-full">+ 新增快讯段落</button>
+      </div>
+    </aside>
+
+    <section id="editorShell" class="editor-shell" aria-labelledby="editorHeading">
+      <h2 id="editorHeading" class="sr-only">段落详情编辑</h2>
+      <div id="editorMount" class="editor-mount">
+        <p class="empty-state">正在加载审稿数据……</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- (a) Cover Copy Studio Dialog -->
+  <dialog id="coverDialog" closedby="any" aria-labelledby="coverDialogTitle">
+    <div class="dialog-sheet">
+      <div class="dialog-header">
+        <div>
+          <h2 id="coverDialogTitle">封面文案工作台</h2>
+          <p class="dialog-sub">对应 <code>review/cover.json</code>，保存后自动标记需重新渲染封面与成片。</p>
+        </div>
+        <form method="dialog">
+          <button type="submit" value="close" class="btn btn-ghost" aria-label="关闭封面文案弹窗">关闭</button>
+        </form>
+      </div>
+
+      <form id="coverForm" class="dialog-body">
+        <div class="field-grid">
+          <div class="field">
+            <label for="coverHeadline">封面主标题（Headline）</label>
+            <input type="text" id="coverHeadline" required autofocus>
+            <div class="field-actions">
+              <button type="button" id="fillLeadHeadlineBtn" class="btn btn-small btn-secondary">填入首条新闻标题</button>
+              <span id="coverStoryCountHint" class="field-hint"></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="coverSubheadline">副标题（Subheadline）</label>
+            <input type="text" id="coverSubheadline" required>
+          </div>
+
+          <div class="field-pair">
+            <div class="field">
+              <label for="coverEyebrow">眉题（Eyebrow）</label>
+              <input type="text" id="coverEyebrow" required>
+            </div>
+            <div class="field">
+              <label for="coverBadge">角标（Badge）</label>
+              <input type="text" id="coverBadge" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="coverHighlights">看点列表（每行一条，最多 4 条）</label>
+            <textarea id="coverHighlights" rows="3"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="coverEntities">重点实体标签（每行或逗号分隔）</label>
+            <input type="text" id="coverEntities" placeholder="OpenAI, Anthropic, DeepSeek…">
+          </div>
+        </div>
+
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-secondary" data-close-dialog="coverDialog">取消</button>
+          <button type="submit" class="btn btn-primary">保存封面文案</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- (b) Frozen Claims & Provenance Inspector Dialog -->
+  <dialog id="provenanceDialog" closedby="any" aria-labelledby="provenanceDialogTitle">
+    <div class="dialog-sheet dialog-wide">
+      <div class="dialog-header">
+        <div>
+          <h2 id="provenanceDialogTitle">事实溯源与冻结断言（manifest.json）</h2>
+          <p class="dialog-sub">核对口播稿与画面卡片是否严格落在已核验的一手证据与断言边界之内。</p>
+        </div>
+        <form method="dialog">
+          <button type="submit" value="close" class="btn btn-ghost" autofocus aria-label="关闭事实溯源弹窗">关闭</button>
+        </form>
+      </div>
+      <div id="provenanceBody" class="dialog-body provenance-content"></div>
+    </div>
+  </dialog>
+
+  <!-- (c) Evidence Image Lightbox Dialog -->
+  <dialog id="lightboxDialog" closedby="any" aria-labelledby="lightboxDialogTitle">
+    <div class="dialog-sheet dialog-wide">
+      <div class="dialog-header">
+        <div>
+          <h2 id="lightboxDialogTitle">证据截图原图预览</h2>
+          <p id="lightboxMeta" class="dialog-sub"></p>
+        </div>
+        <form method="dialog">
+          <button type="submit" value="close" class="btn btn-ghost" autofocus aria-label="关闭原图预览">关闭</button>
+        </form>
+      </div>
+      <div class="dialog-body lightbox-stage">
+        <img id="lightboxImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="证据原图预览" width="1280" height="720">
+      </div>
+    </div>
+  </dialog>
+
+  <!-- (d) Display Settings Dialog -->
+  <dialog id="settingsDialog" closedby="any" aria-labelledby="settingsDialogTitle">
+    <div class="dialog-sheet dialog-compact">
+      <div class="dialog-header">
+        <div>
+          <h2 id="settingsDialogTitle">外观与工作台偏好</h2>
+          <p class="dialog-sub">选择色彩模式，默认自动跟随操作系统浅色或深色设定。</p>
+        </div>
+        <form method="dialog">
+          <button type="submit" value="close" class="btn btn-ghost" aria-label="关闭外观设置弹窗">关闭</button>
+        </form>
+      </div>
+      <div class="dialog-body">
+        <fieldset class="theme-fieldset">
+          <legend>色彩主题</legend>
+          <label class="theme-option">
+            <input type="radio" name="colorSchemeChoice" value="system" autofocus>
+            <span>
+              <strong>跟随系统</strong>
+              <small id="systemSchemeStatus">自动适配系统日夜切换</small>
+            </span>
+          </label>
+          <label class="theme-option">
+            <input type="radio" name="colorSchemeChoice" value="light">
+            <span>
+              <strong>浅色纸感</strong>
+              <small>暖白纸面底色，适合日间长文校对</small>
+            </span>
+          </label>
+          <label class="theme-option">
+            <input type="radio" name="colorSchemeChoice" value="dark">
+            <span>
+              <strong>深色石板</strong>
+              <small>柔和呼吸感石板灰，避免纯黑眩光对比</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <div class="shortcut-card">
+          <h3>快捷键提示</h3>
+          <dl class="shortcut-list">
+            <div><dt><kbd>Ctrl</kbd> + <kbd>S</kbd></dt><dd>保存并生成定稿</dd></div>
+            <div><dt><kbd>↑</kbd> / <kbd>↓</kbd></dt><dd>在左侧段落列表聚焦时快速切换条目</dd></div>
+            <div><dt><kbd>Esc</kbd></dt><dd>关闭任意弹窗</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <output id="statusToast" class="toast" role="status" aria-live="polite" data-visible="false"></output>
+</body>
+</html>

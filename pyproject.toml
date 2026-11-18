@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-daily-briefing"
-version = "0.1.0"
-description = "Evidence-first AI news video pipeline with auditable facts, Remotion rendering, and Bilibili-ready packages."
+version = "0.2.0"
+description = "Evidence-first AI news video pipeline with layered verification, modular Editorial Newsroom Remotion studio, local review workbench, and Bilibili submission gates."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"

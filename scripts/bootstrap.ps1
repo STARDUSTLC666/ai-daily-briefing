@@ -17,7 +17,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Python dependency installation failed.' }
 & npm.cmd --prefix (Join-Path $Repo 'remotion') ci --no-audit --no-fund
 if ($LASTEXITCODE -ne 0) { throw 'Remotion dependency installation failed.' }
 if (-not $SkipBrowser) {
-  $BrowserChannel = & $VenvPython -c 'from briefing.browser_runtime import crawl_channel; print(crawl_channel())'
+  $BrowserChannel = & $VenvPython -c 'from briefing.ingest.browser import browser_channel; print(browser_channel())'
   if ($LASTEXITCODE -ne 0) { throw 'Browser runtime detection failed.' }
   if ($BrowserChannel -eq 'chromium') {
     & $VenvPython -m playwright install chromium
@@ -26,4 +26,4 @@ if (-not $SkipBrowser) {
     Write-Output "Using installed browser channel: $BrowserChannel"
   }
 }
-Write-Output 'Project runtime ready. Use scripts/briefing.ps1 doctor to check production prerequisites.'
+Write-Output 'Project runtime ready. Run scripts/briefing.ps1 doctor to verify prerequisites.'

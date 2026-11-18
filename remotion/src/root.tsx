@@ -1,12 +1,13 @@
 import React from 'react';
 import {Composition} from 'remotion';
-import {BriefingVideo, BriefingVideoProps, totalFrames} from './video';
 import {BriefingCover, BriefingCover43} from './cover';
+import {COVER_43_WIDTH, DESIGN_HEIGHT, DESIGN_WIDTH} from './theme';
+import {BriefingVideo, BriefingVideoProps, totalFrames} from './video';
 
 const fallbackProps: BriefingVideoProps = {
   fps: 30,
-  width: 1920,
-  height: 1080,
+  width: DESIGN_WIDTH,
+  height: DESIGN_HEIGHT,
   slides: [
     {
       index: 0,
@@ -15,9 +16,9 @@ const fallbackProps: BriefingVideoProps = {
       duration: 6,
       kind: 'intro',
       activeTab: 'Intro',
-      accent: '4E7C68',
+      accent: 'C83E2B',
       title: 'AI 日报',
-      caption: '正在生成今日 AI 动态',
+      caption: '每天几分钟，用一手证据讲清 AI 世界的新变化。',
       kicker: 'AI 日报',
       bottomTabs: ['开场', '收尾'],
       bottomActive: '开场',
@@ -25,12 +26,12 @@ const fallbackProps: BriefingVideoProps = {
         kind: 'overview',
         title: '资讯概览',
         cards: [
-          {title: '今日看点', body: '模型、工具、开源与产业动态'},
-          {title: '来源优先', body: '优先采用官方发布、更新日志和可查页面'}
-        ]
-      }
-    }
-  ]
+          {title: '今日看点', body: '模型、工具、开源与产业一手核验动态'},
+          {title: '来源优先', body: '优先采用官方发布、更新日志与原始页面证据'},
+        ],
+      },
+    },
+  ],
 };
 
 export const RemotionRoot: React.FC = () => {
@@ -45,11 +46,12 @@ export const RemotionRoot: React.FC = () => {
         height={fallbackProps.height}
         defaultProps={fallbackProps}
         calculateMetadata={({props}) => {
+          const typed = props as BriefingVideoProps;
           return {
-            durationInFrames: totalFrames(props as BriefingVideoProps),
-            fps: (props as BriefingVideoProps).fps || 30,
-            width: (props as BriefingVideoProps).width || 1920,
-            height: (props as BriefingVideoProps).height || 1080
+            durationInFrames: totalFrames(typed),
+            fps: typed.fps || 30,
+            width: typed.width || DESIGN_WIDTH,
+            height: typed.height || DESIGN_HEIGHT,
           };
         }}
       />
@@ -58,20 +60,30 @@ export const RemotionRoot: React.FC = () => {
         component={BriefingCover}
         durationInFrames={1}
         fps={30}
-        width={1920}
-        height={1080}
+        width={DESIGN_WIDTH}
+        height={DESIGN_HEIGHT}
         defaultProps={fallbackProps}
-        calculateMetadata={() => ({durationInFrames: 1, fps: 30, width: 1920, height: 1080})}
+        calculateMetadata={() => ({
+          durationInFrames: 1,
+          fps: 30,
+          width: DESIGN_WIDTH,
+          height: DESIGN_HEIGHT,
+        })}
       />
       <Composition
         id="BriefingCover43"
         component={BriefingCover43}
         durationInFrames={1}
         fps={30}
-        width={1440}
-        height={1080}
+        width={COVER_43_WIDTH}
+        height={DESIGN_HEIGHT}
         defaultProps={fallbackProps}
-        calculateMetadata={() => ({durationInFrames: 1, fps: 30, width: 1440, height: 1080})}
+        calculateMetadata={() => ({
+          durationInFrames: 1,
+          fps: 30,
+          width: COVER_43_WIDTH,
+          height: DESIGN_HEIGHT,
+        })}
       />
     </>
   );

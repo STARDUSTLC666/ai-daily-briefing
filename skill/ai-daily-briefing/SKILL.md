@@ -1,73 +1,47 @@
 ---
 name: ai-daily-briefing
-description: Run and maintain a local, evidence-first AI news video pipeline. Use when asked to generate an AI briefing, audit sources, verify a run package, prepare Bilibili metadata, test rendering, or check upload readiness.
+description: Run and maintain the layered, evidence-first AI Daily Briefing video pipeline. Use when asked to generate an AI briefing, prepare or serve the review workbench, verify a run package, render Remotion newsroom videos/covers, or check Bilibili upload readiness.
 ---
 
-# Daily Bilibili Briefing
+# AI Daily Briefing (`briefing` v0.2)
 
-## Repo and default command
+## Repository & Unified CLI
 
-Work from the repository root that contains `pyproject.toml` and the `briefing/` package.
-
-Main run:
+Work from the repository root containing `pyproject.toml`, `briefing/`, and `remotion/`. Always invoke Python via `py -3` on Windows.
 
 ```powershell
-py -3 -m briefing run --date today --target bilibili
+# Check runtime prerequisites or unattended run stage
+py -3 -m briefing doctor
+py -3 -m briefing doctor --status .\runs\YYYY-MM-DD
+
+# End-to-end daily run
+py -3 -m briefing run --date today
+py -3 -m briefing run --date today --config .\sources.public-web.json --quality 4k
+
+# Review / Agent workflow
+py -3 -m briefing prepare --mode review --date today
+py -3 -m briefing review --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing review --finalize --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing render --run-dir .\runs\YYYY-MM-DD --quality 1080p
+
+# Verification, repurposing & Bilibili publishing
+py -3 -m briefing verify --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing repurpose --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing publish --run-dir .\runs\YYYY-MM-DD --tid 231
 ```
 
-Useful variants:
+## Core Quality Rules
 
-```powershell
-py -3 -m briefing run --date today --target bilibili --skip-render
-py -3 -m briefing run --date today --target bilibili --quality 4k
-py -3 -m briefing verify-run --run-dir .\runs\YYYY-MM-DD
-py -3 -m briefing bilibili-publish --run-dir .\runs\YYYY-MM-DD --tid 231
-```
+- **Evidence first**: RSS, aggregators, and social feeds only supply leads. Claims must bind to verified primary/article excerpts, never unverified RSS blurbs.
+- **Risk tiers**: `green` = fresh Tier-A official source in window; `yellow` = credible media/arXiv/personnel signal with conservative attribution; `red` = stale, undated, off-topic, or uncorroborated (excluded from video).
+- **Copy hygiene**: Zero clickbait, zero ellipses (`…` / `...`), zero raw English prose, balanced brackets/quotes, and mandatory disclaimers on personnel/community signals.
+- **Cover & subtitle geometry**: `cover.png` (4:3) and `cover-16x9.png` default to the lead story (`titles[0]`), and all Remotion Editorial Newsroom scenes keep body copy above `SUBTITLE_SAFE_BOTTOM` so burned-in subtitles never overlap text.
+- **Safe publishing**: Always run `briefing publish --run-dir ...` (dry-run preflight) first; pass `--execute` only when explicitly authorized.
 
-Use `py -3`, not bare `python`.
-
-## Quality rules
-
-- Treat RSS as input only; publishability depends on source tier, freshness, first-seen time, evidence links, and old-news/future-date checks.
-- Green: official/strong evidence in the freshness window. Yellow: media or research item requiring conservative wording. Red: community-only, no-date stale, off-topic, or insufficient evidence; do not put red items in the main video.
-- Keep domestic and foreign sources: official model/release feeds, Hugging Face organization model updates, GitHub changelogs/releases, arXiv, Chinese tech media, and community clue sources.
-- Do not let arXiv, Hacker News, Reddit, or a single media source dominate the selected video. Prefer source/entity diversity and official product/model updates.
-- After rendering, verify that Bilibili time navigation is based on `script.json` actual timestamps, not estimates.
-- The unattended voice default is Edge `zh-CN-XiaoxiaoNeural` at `+8%` and original pitch. IndexTTS2 profiles are explicit opt-in only.
-
-## Expected outputs
-
-For each run directory `runs\YYYY-MM-DD\`, confirm these exist and are non-empty:
-
-- `final.mp4`, `cover.png`, `subtitles.srt`, `script.json`
-- Remotion 成片还应输出 `cover-16x9.png`；`cover.png` 是 B站首页推荐使用的 4:3 主封面
-- `bilibili.md`, `bilibili.json`, `pinned-comment.md`
-- `sources.md`, `fact-check.md`, `manifest.json`
-
-Always run:
+## Verification Commands
 
 ```powershell
 py -3 -m unittest discover -s tests -v
-py -3 -m briefing verify-run --run-dir .\runs\YYYY-MM-DD
+npm --prefix .\remotion test
+npm --prefix .\remotion run typecheck
 ```
-
-For Bilibili upload readiness, dry-run first. Real upload requires environment variables:
-
-```powershell
-$env:BILI_CLIENT_ID = "..."
-$env:BILI_CLIENT_SECRET = "..."
-$env:BILI_ACCESS_TOKEN = "..."
-$env:BILI_TID = "231"
-```
-
-Then use `--execute` only after the user confirms.
-
-## Daily automation
-
-The fallback Windows workflow installs a 07:00 generation task and an 08:00 publish recheck. Tasks remain disabled unless `-Enable` is supplied:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_scheduled_task.ps1
-```
-
-If debugging automation, inspect `logs\daily-YYYY-MM-DD.log`, the latest `runs\YYYY-MM-DD`, and Windows Task Scheduler state.

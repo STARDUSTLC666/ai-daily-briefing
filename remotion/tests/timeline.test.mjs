@@ -1,125 +1,86 @@
-import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
-import test from "node:test";
-
-import {
-  timelineGeometry,
-  timelineItemIndexAtTime,
-  timelineItemPixelGeometry,
-  timelineProgressPercent,
-  timelineTrackGeometry,
-  timelineXAtTime,
-} from "../src/timeline.ts";
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import test from 'node:test';
+import {activeIndexAtTime, activeSlideAtTime, timelineGeometry} from '../src/layout.ts';
 
 const closeTo = (actual, expected, tolerance = 1e-9) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
 };
 
-test("timeline segments use the same continuous coordinate system as playback time", () => {
-  const total = 159.936;
-  const items = [
-    {start: 0, end: 8.4},
-    {start: 8.4, end: 42.96},
-    {start: 42.96, end: 53.52},
-    {start: 53.52, end: 77.4},
-    {start: 77.4, end: 98.808},
-    {start: 98.808, end: 125.28},
-    {start: 125.28, end: 156.672},
-    {start: 156.672, end: 159.936},
-  ];
-  const geometry = items.map((item) => timelineGeometry(item, total));
+const SAMPLE_ITEMS = [
+  {label: '开场', start: 0, end: 8.4, kind: 'intro'},
+  {label: 'OpenAI', start: 8.4, end: 42.96, kind: 'news'},
+  {label: 'Anthropic', start: 42.96, end: 53.52, kind: 'news'},
+  {label: 'Google', start: 53.52, end: 77.4, kind: 'news'},
+  {label: 'DeepSeek', start: 77.4, end: 98.808, kind: 'news'},
+  {label: 'Meta', start: 98.808, end: 125.28, kind: 'news'},
+  {label: 'Qwen', start: 125.28, end: 156.672, kind: 'news'},
+  {label: '收尾', start: 156.672, end: 159.936, kind: 'outro'},
+];
 
-  closeTo(geometry[0].leftPercent, 0);
-  for (let index = 0; index < geometry.length - 1; index += 1) {
-    closeTo(geometry[index].rightPercent, geometry[index + 1].leftPercent);
+test('timelineGeometry uses continuous global coordinates matching playback time', () => {
+  const total = 159.936;
+  const trackWidth = 1648;
+  const layout = timelineGeometry(SAMPLE_ITEMS, total, 59.8, trackWidth);
+
+  closeTo(layout.segments[0].leftPercent, 0);
+  closeTo(layout.segments[0].leftPx, 0);
+
+  for (let i = 0; i < layout.segments.length - 1; i += 1) {
+    closeTo(layout.segments[i].rightPercent, layout.segments[i + 1].leftPercent);
+    closeTo(layout.segments[i].rightPx, layout.segments[i + 1].leftPx);
   }
-  closeTo(geometry.at(-1).rightPercent, 100);
-  closeTo(geometry[1].widthPercent / geometry[2].widthPercent, 34.56 / 10.56);
-  closeTo(timelineProgressPercent(80, total), (80 / total) * 100);
+
+  closeTo(layout.segments.at(-1).rightPercent, 100);
+  closeTo(layout.segments.at(-1).rightPx, trackWidth);
+  closeTo(
+    layout.segments[1].widthPercent / layout.segments[2].widthPercent,
+    34.56 / 10.56,
+  );
+
+  closeTo(layout.progressPercent, (59.8 / total) * 100);
+  closeTo(layout.progressPx, (59.8 / total) * trackWidth);
+
+  const googleSeg = layout.segments[3];
+  assert.equal(layout.activeIndex, 3);
+  assert.equal(googleSeg.active, true);
+  assert.ok(layout.progressPx >= googleSeg.leftPx && layout.progressPx < googleSeg.rightPx);
 });
 
-test("timeline geometry clamps invalid ranges without leaving the track", () => {
-  assert.deepEqual(timelineGeometry({start: -4, end: 140}, 100), {
-    leftPercent: 0,
-    widthPercent: 100,
-    rightPercent: 100,
-  });
-  closeTo(timelineProgressPercent(120, 100), 100);
+test('timelineGeometry clamps out-of-bounds ranges and playback times cleanly', () => {
+  const layout = timelineGeometry([{start: -10, end: 150}], 100, 140, 1200);
+  assert.equal(layout.currentTime, 100);
+  closeTo(layout.progressPercent, 100);
+  closeTo(layout.progressPx, 1200);
+  assert.equal(layout.segments[0].leftPercent, 0);
+  assert.equal(layout.segments[0].widthPercent, 100);
+  assert.equal(layout.segments[0].rightPercent, 100);
+  assert.equal(layout.segments[0].fillPercent, 100);
 });
 
-test("seeking the player selects the news item at that global time", () => {
-  const items = [
-    {start: 0, end: 8.4},
-    {start: 8.4, end: 42.96},
-    {start: 42.96, end: 53.52},
-    {start: 53.52, end: 77.4},
-    {start: 77.4, end: 98.808},
-    {start: 98.808, end: 125.28},
-    {start: 125.28, end: 156.672},
-    {start: 156.672, end: 159.936},
-  ];
+test('activeSlideAtTime and activeIndexAtTime resolve exact chapter boundaries', () => {
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, -2), 0);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 0), 0);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 8.4), 1);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 50), 2);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 80), 4);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 120), 5);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 156.672), 7);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 159.936), 7);
+  assert.equal(activeIndexAtTime(SAMPLE_ITEMS, 190), 7);
 
-  assert.equal(timelineItemIndexAtTime(items, 0), 0);
-  assert.equal(timelineItemIndexAtTime(items, 8.4), 1);
-  assert.equal(timelineItemIndexAtTime(items, 50), 2);
-  assert.equal(timelineItemIndexAtTime(items, 80), 4);
-  assert.equal(timelineItemIndexAtTime(items, 120), 5);
-  assert.equal(timelineItemIndexAtTime(items, 156.672), 7);
-  assert.equal(timelineItemIndexAtTime(items, 159.936), 7);
+  assert.equal(activeSlideAtTime(SAMPLE_ITEMS, 59.8)?.label, 'Google');
+  assert.equal(activeSlideAtTime([], 10), null);
 });
 
-test("timeline cards and progress fill share the player's full-width coordinate system", () => {
-  const total = 159.936;
-  const viewportWidth = 1920;
-  const inset = 8;
-  const time = 59.8;
-  const track = timelineTrackGeometry(viewportWidth, inset);
-  const progressX = timelineXAtTime(time, total, viewportWidth, inset);
-  const google = timelineItemPixelGeometry({start: 53.52, end: 77.4}, total, viewportWidth, inset);
+test('ChapterTrack uses global playback frame and horizontal fill without vertical playhead or text-jitter', () => {
+  const chromeSource = readFileSync(new URL('../src/chrome.tsx', import.meta.url), 'utf8');
+  const videoSource = readFileSync(new URL('../src/video.tsx', import.meta.url), 'utf8');
 
-  assert.deepEqual(track, {leftPx: 8, rightPx: 1912, widthPx: 1904});
-  closeTo(progressX, inset + (time / total) * track.widthPx);
-  assert.ok(progressX >= google.leftPx && progressX < google.rightPx);
-
-  const oldSqueezedTrackX = 272 + (time / total) * (1908 - 272);
-  assert.ok(Math.abs(oldSqueezedTrackX - progressX) > 150);
-});
-
-test("timeline uses horizontal progress without a vertical playhead overlay", () => {
-  const source = readFileSync(new URL("../src/video.tsx", import.meta.url), "utf8");
-  const timeline = source.slice(source.indexOf("const Timeline"), source.indexOf("const Kicker"));
-
-  assert.match(timeline, /const progressX = timelineXAtTime\(globalTime,\s*total,\s*DESIGN_WIDTH,\s*TIMELINE_TRACK_INSET\)/);
-  assert.match(timeline, /width:\s*Math\.max\(0,\s*progressX - track\.leftPx\)/);
-  assert.doesNotMatch(timeline, /left:\s*progressX/);
-  assert.doesNotMatch(timeline, /transform:\s*"translateX\(-1px\)"/);
-});
-
-test("the rendered navigation uses the global player frame without text-jitter effects", () => {
-  const source = readFileSync(new URL("../src/video.tsx", import.meta.url), "utf8");
-
-  assert.match(source, /compositionFrame\s*\/\s*fps/);
-  assert.match(source, /timelineXAtTime\(globalTime,\s*total,\s*DESIGN_WIDTH,\s*TIMELINE_TRACK_INSET\)/);
-  assert.match(source, /timelineItemPixelGeometry\(item,\s*total,\s*DESIGN_WIDTH,\s*TIMELINE_TRACK_INSET\)/);
-  assert.doesNotMatch(source, /width:\s*168,\s*\n\s*padding:\s*"17px 18px 12px 24px"/);
-  assert.doesNotMatch(source, /slide\.start\s*\+\s*frame\s*\/\s*fps/);
-  assert.doesNotMatch(source, /const\s+scan\s*=/);
-  assert.doesNotMatch(source, /const\s+sheen\s*=/);
-  assert.doesNotMatch(source, /FocusZoom/);
-  assert.doesNotMatch(source, /item\.kind === "outro"[\s\S]*?hasClosing/);
-});
-
-test("opening copy and what-changed copy do not stay on animated transform layers", () => {
-  const source = readFileSync(new URL("../src/video.tsx", import.meta.url), "utf8");
-  const opening = source.slice(source.indexOf("const Opening"), source.indexOf("const Overview"));
-  const newsBoardStart = source.indexOf("const NewsBoard");
-  const newsBoard = source.slice(newsBoardStart, source.indexOf("const Evidence =", newsBoardStart));
-
-  assert.match(source, /const MOTION_SETTLE_FRAMES = 30/);
-  assert.match(source, /const settled = !animated \|\| localFrame >= MOTION_SETTLE_FRAMES/);
-  assert.match(source, /const stableSurface = slide\.kind === "intro"/);
-  assert.match(opening, /label="MORNING EDITION"[^>]*animated=\{false\}/);
-  assert.equal((opening.match(/<MotionBlock[^>]*animated=\{false\}/g) || []).length, 4);
-  assert.match(newsBoard, /<MotionBlock[^>]*animated=\{false\}[\s\S]*?WHAT CHANGED/);
-  assert.match(newsBoard, /background: "rgba\(250,252,251,\.98\)"/);
+  assert.match(videoSource, /const compositionFrame = useCurrentFrame\(\)/);
+  assert.match(chromeSource, /compositionFrame\s*\/\s*safeFps/);
+  assert.match(chromeSource, /timelineGeometry\(rawItems,\s*totalDuration,\s*globalTime,\s*CHAPTER_TRACK_WIDTH\)/);
+  assert.match(chromeSource, /width:\s*Math\.max\(0,\s*geometry\.progressPx\)/);
+  assert.doesNotMatch(chromeSource, /translateX\(-1px\)/);
+  assert.doesNotMatch(chromeSource, /slide\.start\s*\+\s*frame/);
 });

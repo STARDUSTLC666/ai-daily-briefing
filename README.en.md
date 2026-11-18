@@ -1,6 +1,6 @@
 # AI Daily Briefing
 
-> An evidence-first, auditable automation pipeline that turns AI news into Chinese-language videos for content creators.
+> An evidence-first, auditable, cleanly layered automation pipeline that turns 24h of AI news into Chinese-language videos.
 
 [**简体中文**](README.md) · English
 
@@ -10,43 +10,41 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D4?logo=windows11&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-111111)
 
-AI Daily Briefing collects the AI developments of the last 24 hours — scattered across official sites, changelogs, papers, media and communities — and turns them into Chinese videos where every claim has an on-screen evidence shot. It does not rewrite RSS summaries as news. It tiers sources, clusters events, back-tracks to official sources, freezes facts, renders narration, and runs pre-publish acceptance checks, producing one traceable submission package.
+AI Daily Briefing collects AI developments from the last 24 hours across official blogs, changelogs, model hubs, papers, media, and communities, turning them into Chinese videos where every claim is backed by traceable evidence. Instead of rewriting RSS blurbs, it runs source tiering, event clustering, official-source backtracking, atomic claim freezing, modular Editorial Newsroom Remotion rendering, and a 6-stage pre-publish gate.
 
 ![Sample cover](docs/assets/sample-cover.png)
 
-## Highlights
-
-- **Evidence first**: every story keeps its original link, source tier, publication time, evidence screenshot and risk flag.
-- **Fail closed**: stale news, future timestamps, low-information copy, missing screenshots, audio anomalies or manifest mismatches all block publishing.
-- **Full content production**: Chinese script, subtitles, narration, 1080p/4K video, cover art and platform submission metadata are generated automatically.
-- **Reviewable**: script, frames, audio and the submission package each have their own audit file, bound to a single run by SHA-256.
-- **Model-agnostic**: discovery, gates and rendering are plain local code; a human or an AI agent can plug in as an optional review layer.
-- **Credentials safe by default**: sessions, browser profiles, tokens, run logs and daily artifacts never enter Git.
-
-## Workflow
+## Architecture (v0.2 Layered Design)
 
 ```mermaid
 flowchart LR
-    A["Multi-source discovery"] --> B["Event clustering & dedup"]
-    B --> C["Official-source backtracking"]
-    C --> D["Fact & evidence freezing"]
-    D --> E["Chinese script & cards"]
-    E --> F["Narration + Remotion render"]
-    F --> G["Visual, audio & manifest acceptance"]
-    G --> H["Bilibili submission package"]
-    G --> I["Vertical cut & image-text draft"]
+    A["briefing/ingest<br/>Discovery · Enrichment · Official Backtrack · Screenshots"] --> B["briefing/editorial<br/>Clustering · Claim Verification · Editorial Plan"]
+    B --> C["briefing/verify<br/>Freshness Gate · Contracts & HMAC Attestation"]
+    C --> D["briefing/review<br/>Modular Local Review Web Workbench"]
+    C --> E["briefing/render + remotion/<br/>EBU R128 TTS · Editorial Newsroom Studio"]
+    D --> E
+    E --> F["briefing/publish<br/>6-Stage QA Gate · Two-Phase Bilibili Upload"]
 ```
 
-RSS feeds, aggregator pages and community posts only supply leads. Nothing reaches the final video unless it passes the freshness, evidence, copy and visual gates one by one.
+| Package / Directory | Responsibility |
+| --- | --- |
+| `briefing/core/` | Typed domain models, config inheritance (`extends` / `source_filter`), SQLite WAL persistence, canonical AI brand/model registry, text/URL utilities, and PID-safe locks |
+| `briefing/ingest/` | Multi-protocol discovery (RSS/Atom, Hugging Face, Google News, official web, audited social lanes), full-text enrichment, 1st/2nd-hop official reconciliation, and evidence screenshots |
+| `briefing/editorial/` | Event clustering, atomic `FactClaim` verification, `EditorialPlan` + `Storyboard` synthesis, deterministic diversity selection, and single-pass package writing |
+| `briefing/verify/` | 24h freshness & source-tier gate, review-render fingerprint contracts, 6-gate output verification, and clean-worktree HMAC-SHA256 release attestation |
+| `briefing/review/` | Loopback Review Workbench (`web/` frontend with light/soft-slate color-scheme support, live speaking-rate & copy-hygiene linting, Cover Studio, and Provenance Inspector) |
+| `briefing/render/` | Edge TTS / IndexTTS2 narration, EBU R128 loudness mastering (`-15 LUFS`), single-pass FFmpeg audio + subtitle burn, and 9:16 vertical / WeChat repurposing |
+| `briefing/publish/` | Runtime `doctor`, read-only `automation_status` state machine, official crawler health audit, and Bilibili Open Platform two-phase upload |
+| `remotion/` | Modular **Editorial Newsroom** studio (`types`, `theme`, `layout`, `chrome`, `scenes`, `cover`) with strict subtitle safe-zones and 4:3 + 16:9 covers |
 
-## Quick start
+## Quick Start
 
 ### Requirements
 
-- Windows 10/11
-- Python 3.11 or newer
-- Node.js 22 or newer
-- FFmpeg
+- Windows 10/11 (also runs and tests cleanly on macOS / Linux)
+- Python 3.11+
+- Node.js 22+
+- FFmpeg (`ffmpeg` & `ffprobe`)
 
 ### Install
 
@@ -54,156 +52,65 @@ RSS feeds, aggregator pages and community posts only supply leads. Nothing reach
 powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1
 ```
 
-The script creates `.venv`, installs the Python and Remotion dependencies, and reuses the Chrome or Edge already on your machine as the crawling browser, so no extra Chromium download is needed. Manual installation still works:
+Or install manually:
 
 ```powershell
 py -3 -m pip install -e .
 npm --prefix .\remotion ci
 ```
 
-### Self-check
+### Runtime Check
 
 ```powershell
 py -3 -m briefing doctor
 ```
 
-`doctor` reports, as JSON, whether the Python version, dependency modules, Node 22, FFmpeg, Remotion, the render and crawl browsers, the edition configuration and the Bilibili credentials are all in place. Every failing check carries its own fix command; the exit code is 1 when any required check fails.
+## Unified CLI (8 Subcommands)
 
-### Build today's briefing
+| Command | Description |
+| --- | --- |
+| `briefing run` | End-to-end pipeline (`collect -> verify -> render -> QA`, optional `--repurpose`, `--publish`) |
+| `briefing prepare` | Collect, verify, and stage workspace (`--mode review\|agent\|draft`, `--append-morning`) |
+| `briefing review` | Serve local Review Web Workbench (`127.0.0.1:8765`), or freeze manuscript with `--finalize` |
+| `briefing render` | Render manuscript or sample fixture (`--quality 1080p\|4k`, `--tts edge\|indextts2`, `--visual-qa`, `--fixture`) |
+| `briefing verify` | Run all 6 media, provenance, and copy-hygiene gates (`--complete-visual-qa` for agent runs) |
+| `briefing publish` | Bilibili preflight dry-run by default (`--check-auth` token probe, `--execute` live upload) |
+| `briefing repurpose` | Derive 9:16 vertical video + WeChat draft, or reclaim old media with `--prune-days N` |
+| `briefing doctor` | Check prerequisites, `--status <run-dir>` automation stage, `--audit-sources`, or `--collect-x` |
+
+### Common Commands
 
 ```powershell
-py -3 -m briefing run --date today --target bilibili
+# Run today's briefing with the public-web source edition
+py -3 -m briefing run --date today --config .\sources.public-web.json
+
+# Human-in-the-loop review workflow
+py -3 -m briefing prepare --mode review --date today
+py -3 -m briefing review --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing render --run-dir .\runs\YYYY-MM-DD --quality 1080p
+
+# Render the non-publishable design sample fixture
+py -3 -m briefing render --fixture .\docs\examples\newsroom-2026-09-07.json --run-dir .\runs\preview
+
+# Verify & preflight Bilibili submission
+py -3 -m briefing verify --run-dir .\runs\YYYY-MM-DD
+py -3 -m briefing publish --run-dir .\runs\YYYY-MM-DD --tid 231
 ```
 
-Render the 4K version:
-
-```powershell
-py -3 -m briefing run --date today --target bilibili --quality 4k
-```
-
-Collect and prepare the review package only, without rendering:
-
-```powershell
-py -3 -m briefing prepare-review --date today --target bilibili
-```
-
-## Outputs
-
-Each run is written to `runs/YYYY-MM-DD/`:
+## Run Artifacts (`runs/YYYY-MM-DD/`)
 
 | File | Purpose |
 | --- | --- |
-| `final.mp4` | Final horizontal video |
-| `cover.png` / `cover-16x9.png` | 4:3 and 16:9 covers |
-| `subtitles.srt` | Chinese subtitles |
-| `script.json` | Narration, cards and real timings |
-| `fact-check.md` | Facts, risk levels and evidence chain |
-| `sources.md` | Source health and collection results |
-| `bilibili.md` / `bilibili.json` | Title, description, tags and category |
-| `manifest.json` | Machine-readable run manifest |
-| `evidence-screenshots/` | Raw evidence frames |
+| `final.mp4` | Final horizontal video with mastered 48kHz stereo narration and burned-in subtitles |
+| `cover.png` / `cover-16x9.png` | 4:3 primary Bilibili cover and 16:9 widescreen cover anchored to the lead story |
+| `subtitles.srt` | Clause-aligned Chinese SRT subtitles |
+| `script.json` | Spoken script, visual beats, and measured chapter timings |
+| `fact-check.md` / `sources.md` | Verified claims, risk tiers, and source health diagnostics |
+| `bilibili.md` / `bilibili.json` / `pinned-comment.md` | Submission metadata, `MM:SS` chapters, and pinned discussion question |
+| `manifest.json` / `run-state.json` | Machine-readable provenance, stage metrics, and SHA-256 bindings |
+| `evidence-screenshots/` | Verified primary-source screenshots |
 
 ![Rendered frames and evidence shots](docs/assets/sample-contact-sheet.png)
-
-## Visual style
-
-The default is the **newsroom** style: the approved manuscript is paginated by fact density (at most three cards or 220 characters per page), headline sizes step down with text length, and no sentence is truncated and no card dropped. Set an environment variable to go back to the previous layout:
-
-```powershell
-$env:BRIEFING_VISUAL_STYLE = "classic"
-```
-
-Pagination and page selection live in `remotion/src/newsroom-layout.ts` as pure functions covered by `remotion/tests/newsroom.test.mjs`. `docs/examples/` holds a small, separately reviewed editorial sample that `scripts/render_newsroom_preview.py` pushes through the real pipeline to produce a design sample; it is explicitly marked non-publishable and generates no fact claims, source audits or submission attestations.
-
-## Quality gates
-
-Before publishing, at minimum:
-
-```powershell
-py -3 -m briefing verify-run --run-dir .\runs\YYYY-MM-DD
-py -3 -m briefing bilibili-preflight --run-dir .\runs\YYYY-MM-DD
-```
-
-Main checks:
-
-- Whether each story's timestamp falls inside the configured freshness window.
-- Whether core facts trace back to an official source or reliable primary evidence.
-- Whether rumours, community signals and confirmed facts carry distinct labels.
-- Whether narration or card copy contains sensational wording, which blocks the run until a human reviews it.
-- Whether every required evidence screenshot actually appears in the finished video.
-- Whether subtitles, timings, cover, audio and submission metadata all come from the same run.
-- Whether LUFS, true peak, long silences and media parameters pass acceptance.
-
-If any critical check fails, `publish_allowed` stays `false`.
-
-## Sources & configuration
-
-News sources, collection windows and experimental switches live in [sources.yaml](sources.yaml) (comments are Chinese-only for now). Keep the defaults for your first local run, then tune the source list for your own audience.
-
-Configuration supports `extends` inheritance and `source_filter` bulk disabling, so a new edition can be derived without copying the whole source table. The repository ships [sources.public-web.json](sources.public-web.json): it inherits `sources.yaml`, disables social-account and mirror sources plus every `x_` prefixed source, and records the X coverage gate as `not_requested` — a public-web edition never claims to have checked X.
-
-```powershell
-py -3 -m briefing run --date today --config .\sources.public-web.json
-```
-
-The configuration that actually takes effect after inheritance and filtering is written to the run provenance as `effective_config_sha256`.
-
-For sites that require login, use a project-dedicated browser profile:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\open_authenticated_browser.ps1 -Url "https://x.com/"
-```
-
-Sessions are stored only in the Git-ignored `.local/`. Never copy your everyday browser profile, cookies or account exports into the repository.
-
-Narration defaults to Edge TTS. IndexTTS2 is an optional backend that requires an explicit local install path and a licensed voice profile:
-
-```powershell
-$env:BRIEFING_INDEXTTS2_ROOT = "D:\path\to\IndexTTS2"
-powershell -ExecutionPolicy Bypass -File .\scripts\run_indextts2.ps1 -Profile "your-profile-id"
-```
-
-## Optional agent review
-
-The project can produce a full diagnostic package from local code alone, or hand it to a human or an AI agent for source review, editorial selection and final acceptance. The repository ships one constrained agent workflow:
-
-```powershell
-py -3 -m briefing prepare-agent --date today --quality 1080p --force
-py -3 -m briefing finalize-agent --run-dir .\runs\YYYY-MM-DD
-py -3 -m briefing render-agent --run-dir .\runs\YYYY-MM-DD --quality 1080p
-py -3 -m briefing complete-agent-run --run-dir .\runs\YYYY-MM-DD
-```
-
-An agent may only edit within the frozen story and fact set; it cannot bypass sources, media hashes or the publish gate. Implementation details are in the [agent automation runbook](docs/codex-automation-runbook.md).
-
-A scheduled job does not have to infer its own progress:
-
-```powershell
-py -3 -m briefing automation-status --run-dir .\runs\YYYY-MM-DD
-```
-
-It reads artifacts only and returns the current `stage` plus the next command; it never writes an audit, declares facts checked, or submits a video. It returns `blocked` when the run date is not today, when a design sample leaked into daily production, or when a previous submission is still stuck in `submitting` and needs a human check in the creator dashboard. Only one producer may hold the lock for a given day, and a long 4K render is never evicted as if it were a stale lock.
-
-## Publishing to Bilibili
-
-The publish command is dry-run by default:
-
-```powershell
-py -3 -m briefing bilibili-publish --run-dir .\runs\YYYY-MM-DD --tid 231
-```
-
-Before a real upload, store your open-platform credentials encrypted against the current Windows user:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\configure_bilibili.ps1
-py -3 -m briefing bilibili-check-auth
-```
-
-Only after preflight passes, use the explicit `--execute`:
-
-```powershell
-py -3 -m briefing bilibili-publish --run-dir .\runs\YYYY-MM-DD --execute
-```
 
 ## Testing
 
@@ -212,23 +119,6 @@ py -3 -m unittest discover -s tests -v
 npm --prefix .\remotion test
 npm --prefix .\remotion run typecheck
 ```
-
-GitHub Actions runs the Python tests on 3.11 and 3.13, and checks the Remotion timeline and TypeScript types separately.
-
-## Repository boundaries
-
-This public repository contains only source code, tests, example configuration and reviewed showcase assets. The following must always stay on the local machine:
-
-- `.env`, tokens, cookies, browser sessions and Windows credentials.
-- `.local/`, `runs/`, `logs/`, databases and evidence caches.
-- Voice models, images, video clips and third-party material without public redistribution rights.
-- Account IDs, upload-console screenshots and absolute local paths.
-
-To report a security issue, use GitHub Private Vulnerability Reporting; never paste credentials or session data into a public issue. See [SECURITY.md](SECURITY.md).
-
-## Contributing
-
-Source adapters, fact-checking rules, render templates, tests and docs are all welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ## License
 
